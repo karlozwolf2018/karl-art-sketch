@@ -1,0 +1,594 @@
+/* ============================================================
+   css/node-picker.css — Selector de nodos con conectores en la orilla
+   y cables magnéticos imantados ("Magnetic Wire Snap")
+   ============================================================ */
+
+/* ---- Contenedor principal del lienzo de nodos ---- */
+.np-root {
+  --np-accent: var(--cyan, #0091b8);
+  --np-accent-glow: rgba(0, 145, 184, 0.45);
+  --np-accent-bg: rgba(0, 145, 184, 0.12);
+  --np-line-color: var(--line, rgba(20, 50, 90, 0.15));
+
+  position: relative;
+  width: 100%;
+  height: 380px;
+  background-color: var(--bg-1, #f0f4f9);
+  background-image:
+    radial-gradient(var(--np-line-color) 1.2px, transparent 1.2px);
+  background-size: 18px 18px;
+  border: 1px solid var(--line-2, rgba(20, 50, 90, 0.22));
+  border-radius: var(--radius, 10px);
+  overflow: hidden;
+  user-select: none;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Modo de arrastre de cable en vivo */
+.np-root.is-wiring {
+  cursor: crosshair !important;
+}
+
+/* Variante: Técnicas (Cyan) */
+.np-root--tech {
+  --np-accent: var(--cyan, #0091b8);
+  --np-accent-glow: rgba(0, 145, 184, 0.45);
+  --np-accent-bg: rgba(0, 145, 184, 0.12);
+}
+
+/* Variante: Materiales (Magenta / Rosa) */
+.np-root--mat {
+  --np-accent: var(--magenta, #cf1f7d);
+  --np-accent-glow: rgba(207, 31, 125, 0.45);
+  --np-accent-bg: rgba(207, 31, 125, 0.12);
+}
+
+/* Modo oscuro o cyberpunk */
+html:not([data-theme="light"]) .np-root {
+  background-color: rgba(6, 10, 18, 0.85);
+  box-shadow: inset 0 2px 14px rgba(0, 0, 0, 0.6);
+}
+html:not([data-theme="light"]) .np-root--tech {
+  --np-accent: #00eaff;
+  --np-accent-glow: rgba(0, 234, 255, 0.55);
+  --np-accent-bg: rgba(0, 234, 255, 0.16);
+}
+html:not([data-theme="light"]) .np-root--mat {
+  --np-accent: #ff2e97;
+  --np-accent-glow: rgba(255, 46, 151, 0.55);
+  --np-accent-bg: rgba(255, 46, 151, 0.16);
+}
+
+/* ---- Barra superior de estado (contador + acciones) ---- */
+.np-bar {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 12;
+}
+.np-counter {
+  font-family: var(--font-body, -apple-system, sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-mute, #64758c);
+  background: var(--surface-2, rgba(255, 255, 255, 0.9));
+  padding: 3px 9px;
+  border-radius: 99px;
+  border: 1px solid var(--line, rgba(0, 0, 0, 0.1));
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  pointer-events: auto;
+  transition: all 0.2s ease;
+}
+.np-counter.has-selection {
+  color: var(--np-accent);
+  border-color: var(--np-accent);
+  background: var(--surface-3, #ffffff);
+  box-shadow: 0 0 10px var(--np-accent-glow);
+}
+.np-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+}
+.np-btn-text {
+  background: transparent;
+  border: none;
+  font-family: var(--font-body, -apple-system, sans-serif);
+  font-size: 11px;
+  color: var(--text-mute, #64758c);
+  cursor: pointer;
+  padding: 3px 8px;
+  border-radius: 4px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.np-btn-text:hover {
+  color: var(--text, #0c1830);
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* ---- SVG y cables ---- */
+.np-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 1;
+}
+
+/* Línea permanente conectada */
+.np-line {
+  fill: none;
+  stroke: var(--line, rgba(20, 50, 90, 0.18));
+  stroke-width: 1.5;
+  stroke-dasharray: 4 5;
+  transition: stroke 0.25s ease, stroke-width 0.25s ease, opacity 0.25s ease;
+  opacity: 0.35;
+}
+.np-line.is-hover {
+  stroke: var(--np-accent);
+  stroke-width: 2;
+  opacity: 0.75;
+  stroke-dasharray: 2 3;
+}
+.np-line.is-on {
+  stroke: var(--np-accent);
+  stroke-width: 2.4;
+  stroke-dasharray: none;
+  opacity: 1;
+  filter: drop-shadow(0 0 5px var(--np-accent-glow));
+}
+
+/* ---- Cable vivo magnético (Live Wire) ---- */
+.np-wire-live {
+  fill: none;
+  stroke: var(--np-accent);
+  stroke-width: 2.2;
+  stroke-dasharray: 6 4;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px var(--np-accent-glow));
+  animation: np-wire-pulse 0.8s linear infinite;
+}
+@keyframes np-wire-pulse {
+  from { stroke-dashoffset: 20; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* Cable cuando está imantado / atraído por el destino */
+.np-wire-live.is-magnetic-snapped {
+  stroke: var(--np-accent);
+  stroke-width: 3.2;
+  stroke-dasharray: none;
+  filter: drop-shadow(0 0 10px var(--np-accent));
+}
+
+/* Cabezal de arrastre del cable */
+.np-wire-head {
+  fill: var(--np-accent);
+  stroke: #ffffff;
+  stroke-width: 2;
+  filter: drop-shadow(0 0 6px var(--np-accent));
+  transition: r 0.15s ease;
+}
+.np-wire-head.is-magnetic-snapped {
+  r: 8.5;
+  fill: #ffffff;
+  stroke: var(--np-accent);
+  stroke-width: 3;
+  animation: np-snap-head-glow 0.6s ease-in-out infinite alternate;
+}
+@keyframes np-snap-head-glow {
+  from { filter: drop-shadow(0 0 6px var(--np-accent)); }
+  to   { filter: drop-shadow(0 0 14px var(--np-accent)); }
+}
+
+/* ---- Área de nodos DOM ---- */
+.np-nodes-area {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ---- Nodo Base ---- */
+.np-node {
+  position: absolute;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+.np-node:active,
+.np-node.is-dragging {
+  cursor: grabbing !important;
+  z-index: 25 !important;
+  transform: translate(-50%, -50%) scale(1.06) !important;
+  transition: none !important;
+}
+
+/* Destello de conexión reciente */
+.np-node.is-just-connected {
+  animation: np-connect-flash 0.4s ease-out;
+}
+@keyframes np-connect-flash {
+  0%   { transform: translate(-50%, -50%) scale(1.18); box-shadow: 0 0 25px var(--np-accent); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* ---- NODO CENTRAL (Core) ---- */
+.np-node--core {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  cursor: default;
+  z-index: 10;
+}
+
+.np-core-center {
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  background: var(--surface-3, #ffffff);
+  border: 2px solid var(--np-accent);
+  box-shadow: 0 0 16px var(--np-accent-glow), 0 4px 16px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  z-index: 3;
+  pointer-events: auto;
+  animation: np-pulse-core 3.5s ease-in-out infinite;
+  transition: all 0.25s ease;
+}
+@keyframes np-pulse-core {
+  0%, 100% {
+    box-shadow: 0 0 14px var(--np-accent-glow), 0 4px 14px rgba(0, 0, 0, 0.12);
+  }
+  50% {
+    box-shadow: 0 0 24px var(--np-accent-glow), 0 4px 18px rgba(0, 0, 0, 0.18);
+  }
+}
+
+/* Atracción magnética activa sobre el nodo central */
+.np-node--core.is-magnetic-snap .np-core-center {
+  border-color: var(--np-accent);
+  box-shadow: 0 0 32px var(--np-accent), 0 0 10px #ffffff;
+  transform: scale(1.08);
+}
+
+.np-core-icon {
+  font-size: 16px;
+  color: var(--np-accent);
+  line-height: 1;
+}
+.np-core-label {
+  font-family: var(--font-body, -apple-system, sans-serif);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text, #0c1830);
+}
+
+/* Anillo perimetral de puertos magnéticos del nodo central */
+.np-core-ports {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  pointer-events: none;
+  border: 1px dashed rgba(20, 50, 90, 0.18);
+  transition: all 0.2s ease;
+}
+.np-root.is-wiring .np-core-ports {
+  border-color: var(--np-accent);
+  opacity: 0.8;
+}
+.np-core-port {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--surface-3, #ffffff);
+  border: 1.5px solid var(--line-2, rgba(20, 50, 90, 0.3));
+  pointer-events: auto;
+  cursor: crosshair;
+  transform: translate(-50%, -50%);
+  transition: all 0.2s ease;
+}
+.np-core-port:hover {
+  background: var(--np-accent);
+  border-color: #ffffff;
+  box-shadow: 0 0 8px var(--np-accent);
+  transform: translate(-50%, -50%) scale(1.4);
+}
+.np-core-port--n  { top: 0%;   left: 50%; }
+.np-core-port--ne { top: 15%;  left: 85%; }
+.np-core-port--e  { top: 50%;  left: 100%; }
+.np-core-port--se { top: 85%;  left: 85%; }
+.np-core-port--s  { top: 100%; left: 50%; }
+.np-core-port--sw { top: 85%;  left: 15%; }
+.np-core-port--w  { top: 50%;  left: 0%; }
+.np-core-port--nw { top: 15%;  left: 15%; }
+
+/* ---- NODO SATÉLITE DE ETIQUETA ---- */
+.np-node--item {
+  min-width: 58px;
+  max-width: 140px;
+  border-radius: 99px;
+  background: var(--surface-2, rgba(255, 255, 255, 0.95));
+  border: 1px solid var(--line-2, rgba(20, 50, 90, 0.22));
+  font-family: var(--font-body, -apple-system, sans-serif);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-dim, #34475f);
+  white-space: nowrap;
+  text-align: center;
+  z-index: 5;
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  position: absolute;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+/* Orientación dinámica del conector:
+   - Si la etiqueta está a la izquierda del centro, el conector se ubica en la orilla DERECHA.
+   - Si la etiqueta está a la derecha del centro, el conector se ubica en la orilla IZQUIERDA.
+   De esta manera la línea conecta de forma directa sin atravesar el texto ni la etiqueta. */
+.np-node--item,
+.np-node--item.np-dock-left {
+  flex-direction: row;
+  padding: 5px 14px 5px 6px;
+}
+.np-node--item .np-connector--edge,
+.np-node--item.np-dock-left .np-connector--edge {
+  margin-left: -2px;
+  margin-right: 0;
+}
+
+.np-node--item.np-dock-right {
+  flex-direction: row-reverse;
+  padding: 5px 6px 5px 14px;
+}
+.np-node--item.np-dock-right .np-connector--edge {
+  margin-left: 0;
+  margin-right: -2px;
+}
+.np-node-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+/* ---- CONECTOR EN LA ORILLA DE LA ETIQUETA (.np-connector--edge) ---- */
+.np-connector--edge {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--surface-3, #ffffff);
+  border: 2px solid var(--line-2, rgba(20, 50, 90, 0.35));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  display: grid;
+  place-items: center;
+  cursor: crosshair !important;
+  flex-shrink: 0;
+  margin-left: -2px;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.2s ease, box-shadow 0.2s ease;
+  z-index: 10;
+}
+
+/* Núcleo magnético dentro del conector */
+.np-connector-socket {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--line-2, rgba(20, 50, 90, 0.45));
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+/* Halo magnético interactivo */
+.np-connector-halo {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px dashed transparent;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* Hover en el conector de la orilla */
+.np-connector--edge:hover {
+  transform: scale(1.35);
+  border-color: var(--np-accent);
+  box-shadow: 0 0 10px var(--np-accent);
+}
+.np-connector--edge:hover .np-connector-socket {
+  background: var(--np-accent);
+  transform: scale(1.2);
+}
+.np-connector--edge:hover .np-connector-halo {
+  border-color: var(--np-accent);
+  opacity: 0.8;
+  animation: np-halo-spin 3s linear infinite;
+}
+@keyframes np-halo-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Hover en el nodo en general */
+.np-node--item:hover {
+  border-color: var(--np-accent);
+  color: var(--text, #0c1830);
+  background: var(--surface-3, #ffffff);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+/* ---- NODO CONECTADO (.is-on) ---- */
+.np-node--item.is-on {
+  background: var(--np-accent-bg);
+  border-color: var(--np-accent);
+  color: var(--np-accent);
+  font-weight: 700;
+  box-shadow: 0 0 14px var(--np-accent-glow), 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.np-node--item.is-on .np-connector--edge {
+  border-color: var(--np-accent);
+  background: var(--np-accent);
+  box-shadow: 0 0 8px var(--np-accent);
+}
+.np-node--item.is-on .np-connector-socket {
+  background: #ffffff;
+}
+
+/* Atracción magnética activa sobre el nodo (cuando el cable se acerca) */
+.np-node--item.is-magnetic-snap {
+  border-color: var(--np-accent);
+  background: var(--surface-3, #ffffff);
+  box-shadow: 0 0 20px var(--np-accent), 0 0 6px #ffffff;
+  transform: translate(-50%, -50%) scale(1.12) !important;
+}
+.np-node--item.is-magnetic-snap .np-connector--edge {
+  transform: scale(1.5);
+  border-color: var(--np-accent);
+  background: var(--np-accent);
+  box-shadow: 0 0 14px var(--np-accent);
+}
+.np-node--item.is-magnetic-snap .np-connector-socket {
+  background: #ffffff;
+}
+
+/* Animación de entrada de nodo */
+.np-node--new {
+  animation: np-node-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+@keyframes np-node-pop {
+  0%   { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+  100% { transform: translate(-50%, -50%) scale(1);   opacity: 1; }
+}
+
+/* ---- Hint inferior informativo ---- */
+.np-hint {
+  position: absolute;
+  bottom: 42px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-body, -apple-system, sans-serif);
+  font-size: 11px;
+  color: var(--text-mute, #64758c);
+  white-space: nowrap;
+  pointer-events: none;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+  z-index: 3;
+}
+.np-hint b {
+  color: var(--text, #0c1830);
+}
+
+/* ---- Zona de entrada de nodos personalizados ---- */
+.np-custom-zone {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  background: var(--surface-2, rgba(255, 255, 255, 0.95));
+  border-top: 1px solid var(--line-2, rgba(20, 50, 90, 0.2));
+  z-index: 12;
+}
+.np-custom-inp {
+  flex: 1 1 auto;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px dashed var(--line-2, rgba(20, 50, 90, 0.3)) !important;
+  border-radius: 0 !important;
+  padding: 4px 6px !important;
+  font-family: var(--font-body, -apple-system, sans-serif) !important;
+  font-size: 11.5px !important;
+  color: var(--text, #0c1830) !important;
+  outline: none !important;
+  box-shadow: none !important;
+  height: auto !important;
+  transition: border-color 0.2s ease !important;
+}
+.np-custom-inp::placeholder {
+  color: var(--text-mute, #64758c);
+  font-style: italic;
+  font-size: 11px;
+}
+.np-custom-inp:focus {
+  border-bottom-color: var(--np-accent) !important;
+}
+
+.np-custom-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--np-accent-bg);
+  border: 1px solid var(--np-accent);
+  color: var(--np-accent);
+  font-size: 15px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+}
+.np-custom-btn:hover {
+  background: var(--np-accent);
+  color: #fff;
+  box-shadow: 0 0 10px var(--np-accent-glow);
+  transform: scale(1.08);
+}
+
+/* ---- Sección contenedora en el editor ---- */
+.np-section {
+  display: grid;
+  gap: 0;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface-2);
+}
+.np-section-title {
+  font-family: var(--font-body, -apple-system, sans-serif);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  padding: 9px 14px 8px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.02);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ---- Adaptación móvil ---- */
+@media (max-width: 760px) {
+  .np-root { height: 320px; }
+  .np-hint { display: none; }
+  .np-btn-text { font-size: 10px; }
+}

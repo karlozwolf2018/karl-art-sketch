@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light" data-crt="on" data-locale="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KARL SKETCH - Archivo de bocetos, grafito y tinta</title>
+<meta name="description" content="Archivo interactivo de bocetos, dibujos a lápiz, carboncillo, bolígrafo y marcadores explorado con una interfaz de nodos cyberpunk.">
+<meta name="theme-color" content="#f0f4f8">
+<meta name="author" content="Karl Sketch Studio">
+<meta property="og:title" content="KARL SKETCH - Archivo de bocetos">
+<meta property="og:description" content="Explora el archivo de dibujo como un grafo de nodos: bocetos, grafito, carboncillo, tinta y marcadores.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23060810'/%3E%3Cpath d='M7 25 L16 7 L25 25 Z' fill='none' stroke='%2300eaff' stroke-width='2'/%3E%3Ccircle cx='16' cy='19' r='3' fill='%23ff2e97'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- ===================== HOJA DE ESTILOS DE PRODUCCIÓN UNIFICADA ===================== -->
+<link rel="stylesheet" href="css/app.min.css?v=20261110-space-hover">
+</head>
+<body class="is-booting">
+
+<!-- ===================== FONDO / ATMÓSFERA ELEGANTE ===================== -->
+<div class="bg" aria-hidden="true">
+  <div class="bg__ambient"></div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div class="app" id="app">
+
+  <!-- ---------- TOPBAR ---------- -->
+  <header class="topbar" role="banner">
+    <div class="topbar__left">
+      <button class="iconbtn topbar__burger" id="btn-sidebar" aria-label="Mostrar filtros" aria-expanded="true"
+              data-i18n-attr="aria-label:ui.sidebar.showFilters">
+        <span></span><span></span><span></span>
+      </button>
+      <a class="brand" href="#graph" id="brand">
+        <svg class="brand__mark" viewBox="0 0 40 40" aria-hidden="true">
+          <polygon points="20,4 35,12 35,28 20,36 5,28 5,12" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M12 27 L20 11 L28 27 Z" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="20" cy="21" r="3.2" fill="currentColor"/>
+        </svg>
+        <span class="brand__text">
+          <strong class="brand__name glitch" data-text="KARL_SKETCH">KARL_SKETCH</strong>
+          <em class="brand__sub" data-i18n="ui.brandSub">archivo de bocetos v2.1</em>
+        </span>
+      </a>
+    </div>
+
+    <nav class="topbar__nav" id="view-nav" aria-label="Vistas" data-i18n-attr="aria-label:ui.navLabel">
+      <button class="navtab is-active" data-view="graph"><span class="navtab__dot"></span><span data-i18n="ui.nav.graph">GRAFO</span></button>
+      <button class="navtab" data-view="gallery"><span class="navtab__dot"></span><span data-i18n="ui.nav.gallery">GALERÍA</span></button>
+      <button class="navtab" data-view="about"><span class="navtab__dot"></span><span data-i18n="ui.nav.info">INFO</span></button>
+    </nav>
+
+    <div class="topbar__right">
+      <div class="searchbox" role="search">
+        <svg class="searchbox__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M16 16 L21 21" stroke="currentColor" stroke-width="1.8"/></svg>
+        <input id="search-input" type="search" autocomplete="off" spellcheck="false"
+               placeholder="buscar obra, técnica, tag…" aria-label="Buscar en el archivo"
+               data-i18n-attr="placeholder:ui.search.placeholder,aria-label:ui.search.aria">
+        <kbd class="searchbox__kbd">/</kbd>
+        <button class="searchbox__clear" id="search-clear" aria-label="Limpiar búsqueda"
+                data-i18n-attr="aria-label:ui.search.clear">×</button>
+        <span class="searchbox__count" id="search-count"></span>
+      </div>
+
+      <!-- conmutador de tema claro / oscuro -->
+      <button class="themeswitch" id="btn-theme" type="button" aria-pressed="true"
+              title="Tema claro / oscuro" aria-label="Tema actual: claro. Cambiar a oscuro"
+              data-i18n-attr="title:meta.themeTitle,aria-label:meta.themeAriaLight">
+        <span class="themeswitch__icon" aria-hidden="true">☀</span>
+      </button>
+
+      <!-- badge indicador de modo administrador -->
+      <button class="admin-badge" id="btn-admin-badge" type="button"
+              title="Modo Administrador activo (Ctrl+Shift+A para salir)">
+        <span class="admin-badge__dot"></span>
+        <span class="admin-badge__icon">🔒</span>
+        <span class="admin-badge__text">ADMIN</span>
+      </button>
+
+      <!-- backup / restore -->
+      <div class="backupmenu" id="backup-menu-wrap">
+        <button class="backupmenu__trigger iconbtn" id="btn-backup" type="button"
+                title="Respaldar / Restaurar archivo" aria-label="Abrir opciones de respaldo"
+                aria-haspopup="true" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="20" height="20">
+            <ellipse cx="12" cy="5" rx="9" ry="3"/>
+            <path d="M3 5v6c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+            <path d="M3 11v6c0 1.66 4.03 3 9 3s9-1.34 9-3v-6"/>
+          </svg>
+        </button>
+
+        <div class="backupmenu__dropdown" id="backup-dropdown" role="menu" aria-hidden="true">
+
+          <!-- ── SECCIÓN: RESPALDO COMPLETO ── -->
+          <div class="backupmenu__header">RESPALDO COMPLETO</div>
+          <button class="backupmenu__item" id="btn-do-backup" role="menuitem">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="16" height="16">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span>RESPALDAR</span>
+            <small>Exportar estado</small>
+          </button>
+          <button class="backupmenu__item" id="btn-do-restore" role="menuitem">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="16" height="16">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <span>RESTAURAR</span>
+            <small>Importar estado</small>
+          </button>
+
+          <!-- ── SEPARADOR ── -->
+          <div class="backupmenu__divider" aria-hidden="true"></div>
+
+          <!-- ── SECCIÓN: CATÁLOGO DE OBRAS ── -->
+          <div class="backupmenu__header">CATÁLOGO DE OBRAS</div>
+          <button class="backupmenu__item" id="btn-export-catalog" role="menuitem">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="16" height="16">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M9 3v18M3 9h6M3 15h6"/>
+              <path d="M14 8l4 4-4 4"/>
+            </svg>
+            <span>EXPORTAR</span>
+            <small>artworks.json</small>
+          </button>
+          <button class="backupmenu__item" id="btn-import-catalog" role="menuitem">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="16" height="16">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M9 3v18M3 9h6M3 15h6"/>
+              <path d="M18 8l-4 4 4 4"/>
+            </svg>
+            <span>IMPORTAR</span>
+            <small>artworks.json</small>
+          </button>
+
+        </div>
+
+        <!-- input oculto: restauración de respaldo completo -->
+        <input type="file" id="restore-file-input" accept=".json,application/json"
+               style="display:none" aria-hidden="true">
+        <!-- input oculto: importación de catálogo -->
+        <input type="file" id="catalog-file-input" accept=".json,application/json"
+               style="display:none" aria-hidden="true">
+      </div>
+
+
+      <!-- añadir obra -->
+      <button class="btn btn--accent addworkbtn" id="btn-add-work" type="button"
+              title="Añadir una obra nueva" aria-label="Añadir una obra nueva al archivo"
+              data-i18n-attr="title:meta.addWorkTitle,aria-label:meta.addWorkAria">
+        <svg class="addworkbtn__icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+        <span class="addworkbtn__label" data-i18n="meta.addWork">+ NUEVA OBRA</span>
+      </button>
+
+      <div class="topbar__stats">
+        <span class="chip chip--ghost"><b id="status-nodes">0</b> <span data-i18n="ui.stats.nodes">nodos</span></span>
+        <span class="chip chip--ghost"><b id="status-edges">0</b> <span data-i18n="ui.stats.edges">enlaces</span></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ---------- WORKSPACE ---------- -->
+  <div class="workspace">
+
+    <!-- ---------- SIDEBAR / FILTROS ---------- -->
+    <aside class="panel" id="sidebar" aria-label="Filtros del archivo" data-i18n-attr="aria-label:ui.sidebar.aria">
+      <div class="panel__scroll">
+        <section class="panel__block">
+          <h2 class="panel__title"><span class="panel__bracket">[</span><span data-i18n="ui.sidebar.techniques">TÉCNICAS</span><span class="panel__bracket">]</span></h2>
+          <div class="catlist" id="filter-categories"></div>
+        </section>
+
+        <section class="panel__block">
+          <h2 class="panel__title"><span class="panel__bracket">[</span><span data-i18n="ui.sidebar.gallery">GALERÍAS</span><span class="panel__bracket">]</span></h2>
+          <select class="gallery__filter" id="filter-gallery">
+            <option value="">Todas las galerías</option>
+          </select>
+        </section>
+
+        <section class="panel__block">
+          <h2 class="panel__title"><span class="panel__bracket">[</span><span data-i18n="ui.sidebar.tags">TAGS</span><span class="panel__bracket">]</span></h2>
+          <div class="taglist" id="filter-techniques"></div>
+        </section>
+
+        <section class="panel__block">
+          <h2 class="panel__title"><span class="panel__bracket">[</span><span data-i18n="ui.sidebar.status">ESTADO</span><span class="panel__bracket">]</span></h2>
+          <label class="switch">
+            <input type="checkbox" id="filter-fav">
+            <span class="switch__track"><span class="switch__knob"></span></span>
+            <span class="switch__label"><span data-i18n="ui.sidebar.onlyFavorites">Sólo favoritos</span> <b id="fav-count">0</b></span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" id="filter-available">
+            <span class="switch__track"><span class="switch__knob"></span></span>
+            <span class="switch__label" data-i18n="ui.sidebar.onlyAvailable">Sólo disponibles</span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" id="filter-physics" checked>
+            <span class="switch__track"><span class="switch__knob"></span></span>
+            <span class="switch__label" data-i18n="ui.sidebar.physics">Física activa</span>
+          </label>
+          <button class="btn btn--ghost btn--block" id="btn-clear-filters" data-i18n="ui.sidebar.reset">RESET FILTROS</button>
+        </section>
+
+        <section class="panel__block">
+          <h2 class="panel__title"><span class="panel__bracket">[</span><span data-i18n="ui.sidebar.telemetry">TELEMETRÍA</span><span class="panel__bracket">]</span></h2>
+          <dl class="readout" id="side-stats">
+            <div><dt data-i18n="ui.readout.artworks">Obras</dt><dd id="ro-total">–</dd></div>
+            <div><dt data-i18n="ui.readout.visible">Visibles</dt><dd id="ro-visible">–</dd></div>
+            <div><dt data-i18n="ui.readout.hours">Horas de estudio</dt><dd id="ro-hours">–</dd></div>
+            <div><dt data-i18n="ui.readout.nodes">Nodos</dt><dd id="ro-nodes">–</dd></div>
+            <div><dt data-i18n="ui.readout.edges">Enlaces</dt><dd id="ro-edges">–</dd></div>
+            <div><dt data-i18n="ui.readout.source">Fuente</dt><dd id="ro-source">–</dd></div>
+          </dl>
+        </section>
+
+        <section class="panel__block panel__block--hint">
+          <h2 class="panel__title"><span class="panel__bracket">[</span><span data-i18n="ui.sidebar.controls">CONTROLES</span><span class="panel__bracket">]</span></h2>
+          <ul class="hints" id="side-hints" data-i18n-html="ui.hintsHtml">
+            <li><kbd>arrastrar</kbd> lienzo o nodo</li>
+            <li><kbd>rueda</kbd> zoom</li>
+            <li><kbd>click</kbd> abrir ficha</li>
+            <li><kbd>doble click</kbd> centrar nodo</li>
+            <li><kbd>/</kbd> buscar · <kbd>Esc</kbd> cerrar</li>
+            <li><kbd>G</kbd> galería · <kbd>F</kbd> encajar</li>
+          </ul>
+        </section>
+      </div>
+      <div class="panel__foot">
+        <span class="led" id="led-status"></span>
+        <span class="panel__foottext" data-i18n="ui.online">SISTEMA EN LÍNEA</span>
+      </div>
+    </aside>
+
+    <!-- ---------- ÁREA PRINCIPAL ---------- -->
+    <main class="stage-area" id="main" data-view="graph">
+
+      <!-- TOOLBAR -->
+      <div class="toolbar" id="toolbar" role="toolbar" aria-label="Herramientas del grafo"
+           data-i18n-attr="aria-label:ui.tools.toolbar">
+        <div class="toolbar__group">
+          <button class="toolbtn" id="btn-zoom-out" title="Alejar (-)" aria-label="Alejar"
+                  data-i18n-attr="title:ui.tools.zoomOut,aria-label:ui.tools.zoomOut">−</button>
+          <span class="toolbar__zoom" id="zoom-label">100%</span>
+          <button class="toolbtn" id="btn-zoom-in" title="Acercar (+)" aria-label="Acercar"
+                  data-i18n-attr="title:ui.tools.zoomIn,aria-label:ui.tools.zoomIn">+</button>
+        </div>
+        <div class="toolbar__group">
+          <button class="toolbtn" id="btn-fit" title="Encajar todo (F)" data-i18n-attr="title:ui.tools.fitTitle">
+            ⤢ <span data-i18n="ui.tools.fit">AJUSTAR</span>
+          </button>
+          <button class="toolbtn" id="btn-layout" title="Reordenar constelación (R)" data-i18n-attr="title:ui.tools.layoutTitle">
+            ⟳ <span data-i18n="ui.tools.layout">ORDENAR</span>
+          </button>
+          <button class="toolbtn" id="btn-focus-core" title="Volver al núcleo (C)" data-i18n-attr="title:ui.tools.coreTitle">
+            ◎ <span data-i18n="ui.tools.core">NÚCLEO</span>
+          </button>
+        </div>
+        <div class="toolbar__group">
+          <button class="toolbtn is-on" id="btn-physics" title="Activar/desactivar física (P)" aria-pressed="true"
+                  data-i18n-attr="title:ui.tools.physicsTitle">
+            ⚛ <span data-i18n="ui.tools.physics">FÍSICA</span>
+          </button>
+          <button class="toolbtn" id="btn-export" title="Exportar el grafo visible a JSON" data-i18n-attr="title:ui.tools.exportTitle">
+            ⤓ <span data-i18n="ui.tools.export">EXPORTAR</span>
+          </button>
+          <button class="toolbtn" id="btn-fullscreen" title="Pantalla completa" aria-label="Pantalla completa"
+                  data-i18n-attr="title:ui.tools.fullscreen,aria-label:ui.tools.fullscreen">⛶</button>
+        </div>
+      </div>
+
+      <!-- VISTA GRAFO -->
+      <section class="view view--graph is-active" id="view-graph" aria-label="Vista de nodos"
+               data-i18n-attr="aria-label:ui.graph.aria">
+        <div class="graph" id="graph">
+          <div class="graph__world" id="graph-world">
+            <svg class="graph__edges" id="graph-edges" width="9000" height="7000" viewBox="-4500 -3500 9000 7000" aria-hidden="true"></svg>
+            <div class="graph__nodes" id="graph-nodes"></div>
+          </div>
+
+          <div class="graph__legend" id="graph-legend" aria-hidden="true"></div>
+
+          <div class="graph__minimap" id="graph-minimap">
+            <canvas id="minimap-canvas" width="200" height="140"></canvas>
+            <span class="graph__minimap-label" data-i18n="ui.graph.radar">RADAR</span>
+          </div>
+
+          <div class="graph__hint" id="graph-hint">
+            <span class="graph__hint-dot"></span><span data-i18n="ui.graph.hint">arrastra el lienzo · rueda para zoom · click en un nodo</span>
+          </div>
+
+          <div class="graph__tooltip" id="graph-tooltip" role="tooltip" aria-hidden="true"></div>
+        </div>
+      </section>
+
+      <!-- VISTA GALERÍA -->
+      <section class="view view--gallery" id="view-gallery" aria-label="Vista de galería"
+               data-i18n-attr="aria-label:ui.views.galleryAria">
+        <div class="gallery" id="gallery"></div>
+      </section>
+
+      <!-- VISTA INFO -->
+      <section class="view view--about" id="view-about" aria-label="Información del archivo"
+               data-i18n-attr="aria-label:ui.views.aboutAria">
+        <div class="about">
+          <header class="about__head">
+            <p class="eyebrow" data-i18n="about.eyebrow">// DOSSIER DEL ARCHIVO</p>
+            <h1 class="about__title glitch" data-text="EL CUADERNO COMO RED" data-i18n="about.title">EL CUADERNO COMO RED</h1>
+            <p class="about__lead" data-i18n="about.lead">
+              Este archivo no ordena los dibujos en fila: los conecta. Cada obra es un nodo y cada enlace
+              es una relación real de estudio — mismo modelo, misma paleta, misma obsesión.
+              Mueve el grafo, ábrelo, sigue los hilos.
+            </p>
+          </header>
+
+          <div class="about__grid">
+            <article class="about__card">
+              <h2 data-i18n="about.c1.title">01 · Materiales</h2>
+              <p data-i18n="about.c1.body">Grafito 2H–8B sobre Bristol y Fabriano, carboncillo prensado y difuminos,
+                bolígrafo de gel 0.38, marcadores de alcohol de doble punta y tinta acrílica para los acentos.</p>
+              <ul class="about__list">
+                <li data-i18n-html="about.c1.l1"><b>Grafito</b> — estudio de volumen y valor</li>
+                <li data-i18n-html="about.c1.l2"><b>Carboncillo</b> — atmósfera y contraste crudo</li>
+                <li data-i18n-html="about.c1.l3"><b>Bolígrafo</b> — línea continua, sin corrección</li>
+                <li data-i18n-html="about.c1.l4"><b>Marcadores</b> — color plano y luz sintética</li>
+              </ul>
+            </article>
+
+            <article class="about__card">
+              <h2 data-i18n="about.c2.title">02 · Método</h2>
+              <p data-i18n="about.c2.body">Todo empieza con manchas de 30 segundos y termina con pasadas largas
+                de 6 a 9 horas. Las fichas guardan tiempos reales de butaca, no estimaciones amables.</p>
+              <ol class="about__steps">
+                <li data-i18n="about.c2.s1">Mancha ciega de 30 s</li>
+                <li data-i18n="about.c2.s2">Bloqueo de proporciones</li>
+                <li data-i18n="about.c2.s3">Valorización en 3 tonos</li>
+                <li data-i18n="about.c2.s4">Detalle selectivo y acento neón</li>
+              </ol>
+            </article>
+
+            <article class="about__card">
+              <h2 data-i18n="about.c3.title">03 · La interfaz</h2>
+              <p data-i18n-html="about.c3.body">El grafo usa física de fuerzas: los nodos se repelen, los enlaces
+                tiran. Los hexágonos son <b>técnicas</b>, el hexágono central es el <b>núcleo del archivo</b> y las
+                tarjetas son las <b>obras</b>. Los enlaces punteados magenta significan afinidad temática.</p>
+              <div class="about__legend" id="about-legend"></div>
+            </article>
+
+          </div>
+
+          <footer class="about__foot">
+            <p data-i18n="about.foot">© 2026 Karl Sketch Studio · Todos los derechos reservados. Todas las obras y el contenido de este archivo son de autoría propia y están protegidos por derechos de autor.</p>
+            <p class="about__code" data-i18n="about.code" style="margin-top: 25px;">© 2026 Karl Sketch Studio</p>
+          </footer>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ---------- BARRA DE ESTADO ---------- -->
+  <footer class="statusbar" role="contentinfo">
+    <span class="statusbar__seg"><b data-i18n="ui.statusbar.nodes">NODOS</b> <span id="status-nodes">0</span></span>
+    <span class="statusbar__seg"><b data-i18n="ui.statusbar.edges">ENLACES</b> <span id="status-edges">0</span></span>
+    <span class="statusbar__seg"><b data-i18n="ui.statusbar.zoom">ZOOM</b> <span id="status-zoom">100%</span></span>
+    <span class="statusbar__seg"><b data-i18n="ui.statusbar.fps">FPS</b> <span id="status-fps">–</span></span>
+    <span class="statusbar__seg"><b data-i18n="ui.statusbar.source">FUENTE</b> <span id="status-source">cargando…</span></span>
+    <span class="statusbar__seg statusbar__seg--right"><span id="status-clock">--:--:--</span></span>
+  </footer>
+</div>
+
+<!-- ===================== CAPAS FLOTANTES ===================== -->
+<div class="modal-root" id="modal-root" aria-hidden="true"></div>
+<div class="editor-root" id="editor-root" aria-hidden="true"></div>
+<div class="toast-root" id="toast-root" role="status" aria-live="polite"></div>
+
+<!-- ===================== PANTALLA DE ARRANQUE ===================== -->
+<div class="loader" id="loader" role="dialog" aria-label="Iniciando sistema" aria-modal="true"
+     data-i18n-attr="aria-label:ui.loader.aria">
+  <div class="loader__inner">
+    <div class="loader__mark">
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <polygon class="loader__hex" points="60,8 105,34 105,86 60,112 15,86 15,34" fill="none"/>
+        <path class="loader__pen" d="M38 82 L60 32 L82 82 Z" fill="none"/>
+        <circle class="loader__core" cx="60" cy="64" r="7"/>
+      </svg>
+    </div>
+    <h1 class="loader__title">KARL<span>_</span>SKETCH</h1>
+    <p class="loader__sub" data-i18n="ui.loader.sub">montando grafo de bocetos…</p>
+    <pre class="loader__lines" id="loader-lines"></pre>
+    <div class="loader__barwrap"><div class="loader__bar" id="loader-bar"></div></div>
+    <div class="loader__meta">
+      <span id="loader-pct">0%</span>
+      <button class="btn btn--ghost btn--tiny" id="loader-skip" data-i18n="ui.loader.skip">SALTAR INTRO</button>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ---------------- estilos base ---------------- */
+.card{position:relative;isolation:isolate}
+
+/* Efecto Holofoil */
+.card__holo{
+  position: absolute!important;
+  inset: 0!important;
+  border-radius: inherit!important;
+  pointer-events: none!important;
+  z-index: 5!important;
+  opacity: var(--holo-o, 0)!important;
+  background: 
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 0, 255, 0.25) 0%,
+      rgba(0, 255, 255, 0.25) 10%,
+      rgba(255, 255, 0, 0.25) 20%,
+      rgba(0, 255, 0, 0.25) 30%,
+      rgba(255, 0, 255, 0.25) 40%
+    ),
+    linear-gradient(
+      115deg,
+      rgba(255,255,255,0.4) 0%,
+      rgba(255,255,255,0) 50%,
+      rgba(0,0,0,0.3) 100%
+    )!important;
+  mix-blend-mode: overlay!important;
+  background-size: 200% 200%, 100% 100%!important;
+  background-position: calc(var(--mx,50%) * 2) calc(var(--my,50%) * 2), center!important;
+  transition: opacity 0.3s ease!important;
+  filter: brightness(1.2) contrast(1.1)!important;
+}
+</style>
+
+<style>
+/* Overrides para separar créditos de modales/cards */
+.about{padding:90px 32px 100px !important}
+.about__grid{margin-bottom:80px !important}
+.about__foot{margin-top:40px !important;padding-top:24px !important;border-top:1px solid var(--line) !important;color:var(--text-mute)!important;font-size:13px!important;line-height:1.6!important}
+.about__foot .about__code{margin-top:12px !important;font-family:var(--font-mono)!important;font-size:12px!important;opacity:.8!important}
+.modal-root{padding:32px 24px 56px !important}
+.modal{max-height:92vh !important}
+</style>
+
+<noscript>
+  <div class="noscript" data-i18n="ui.noscript">Este archivo necesita JavaScript para dibujar el grafo de nodos.</div>
+</noscript>
+
+<!-- ===================== SCRIPT DE PRODUCCIÓN UNIFICADO ===================== -->
+<script src="js/app.min.js?v=20261110-space-hover"></script>
+</body>
+</html>

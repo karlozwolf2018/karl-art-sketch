@@ -1,0 +1,63 @@
+{
+  "site": {
+    "name": "KARL_SKETCH",
+    "tagline": "archivo de bocetos, grafito y tinta",
+    "tagline_en": "sketchbook, graphite and ink archive",
+    "version": "2.1",
+    "author": "Karl Sketch Studio",
+    "description": "Archivo interactivo de dibujo organizado como grafo de nodos: bocetos, lápiz, carboncillo, bolígrafo, marcadores y técnica mixta.",
+    "description_en": "Interactive drawing archive arranged as a node graph: sketches, pencil, charcoal, ballpoint, markers and mixed media."
+  },
+  "graph": {
+    "repulsion": 46000,
+    "springLength": 196,
+    "springStrength": 0.021,
+    "tagStrength": 0.012,
+    "gravity": 0.0026,
+    "damping": 0.86,
+    "maxVelocity": 26,
+    "hubRadius": 430,
+    "coreRadius": 0,
+    "artSpread": 168,
+    "minZoom": 0.26,
+    "maxZoom": 2.6,
+    "tagAffinityMin": 2,
+    "maxTagEdges": 3,
+    "packets": true
+  },
+  "ui": {
+    "defaultView": "graph",
+    "particles": 96,
+    "tooltipDelay": 240,
+    "bootLines": [
+      "> inicializando kernel visual .......... [ ok ]",
+      "> cargando módulo de grafito ........... [ ok ]",
+      "> calibrando carboncillo ............... [ ok ]",
+      "> inyectando tinta 0.38 ................ [ ok ]",
+      "> mezclando marcadores de alcohol ...... [ ok ]",
+      "> indexando archivo / 6 técnicas ...... [ ok ]",
+      "> resolviendo afinidades temáticas ..... [ ok ]",
+      "> tejiendo aristas del grafo ........... [ ok ]",
+      "> activando física de fuerzas ......... [ ok ]",
+      "> estabilizando constelación ........... [ ok ]",
+      "> montando interfaz de nodos ........... [ ok ]",
+      "> sistema listo. bienvenido, dibujante."
+    ],
+    "bootLines_en": [
+      "> booting visual kernel ................ [ ok ]",
+      "> loading graphite module .............. [ ok ]",
+      "> calibrating charcoal ................. [ ok ]",
+      "> priming 0.38 ink pen ................. [ ok ]",
+      "> blending alcohol markers ............. [ ok ]",
+      "> indexing archive / 6 techniques ..... [ ok ]",
+      "> resolving thematic affinities ........ [ ok ]",
+      "> weaving graph edges .................. [ ok ]",
+      "> enabling force physics ............... [ ok ]",
+      "> settling the constellation ........... [ ok ]",
+      "> mounting node interface .............. [ ok ]",
+      "> system ready. welcome, draughtsman."
+    ]
+  },
+  "links": {},
+  "adminPasswordHash": "e84f4a616fa49630048b770bc7122753d354661295513793c2306b5f9dea06ab"
+}

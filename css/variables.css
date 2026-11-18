@@ -1,0 +1,100 @@
+/* ============================================================
+   variables.css — Sistema de diseño: Estudio & Galería Elegante
+   ============================================================ */
+:root {
+  /* --- paleta base (fondos obsidian & charcoal) --- */
+  --bg-0: #090a0f;
+  --bg-1: #0f121a;
+  --bg-2: #151924;
+  --bg-3: #1d2232;
+  --bg-4: #262d42;
+
+  /* --- superficies limpias & cristal sutil --- */
+  --surface: rgba(15, 18, 26, 0.94);
+  --surface-2: rgba(22, 27, 39, 0.96);
+  --surface-3: #1e2436;
+  --glass: rgba(15, 18, 26, 0.75);
+
+  /* --- líneas arquitectónicas y bordes --- */
+  --line: rgba(255, 255, 255, 0.08);
+  --line-2: rgba(255, 255, 255, 0.15);
+  --line-strong: rgba(255, 255, 255, 0.28);
+
+  /* --- tipografía nítida y legible --- */
+  --text: #f8fafc;
+  --text-dim: #cbd5e1;
+  --text-mute: #8e9cb2;
+
+  /* --- acentos elegantes y sofisticados (Oro Champán, Titanio, Coral) --- */
+  --gold: #d4a373;
+  --gold-soft: #faedcd;
+  --cyan: #38bdf8;
+  --cyan-soft: #bae6fd;
+  --magenta: #f43f5e;
+  --violet: #a78bfa;
+  --lime: #34d399;
+  --amber: #fbbf24;
+  --orange: #fb923c;
+  --red: #f87171;
+
+  /* --- semánticos --- */
+  --accent: #d4a373;
+  --accent-soft: #faedcd;
+  --accent-2: #38bdf8;
+  --ok: #34d399;
+  --warn: #fbbf24;
+  --danger: #f87171;
+
+  /* --- sombras refinadas --- */
+  --glow-cyan: 0 4px 20px rgba(56, 189, 248, 0.25);
+  --glow-magenta: 0 4px 20px rgba(244, 63, 94, 0.25);
+  --glow-gold: 0 4px 24px rgba(212, 163, 115, 0.28);
+  --shadow-panel: 0 20px 50px rgba(0, 0, 0, 0.65);
+  --shadow-node: 0 14px 34px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08);
+
+  /* --- tipografías modernas --- */
+  --font-display: "Outfit", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-body: "Plus Jakarta Sans", "Outfit", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", monospace;
+
+  /* --- medidas ampliadas para legibilidad --- */
+  --topbar-h: 70px;
+  --statusbar-h: 32px;
+  --panel-w: 290px;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 18px;
+  --node-w: 240px;
+  --hub-size: 130px;
+  --core-size: 150px;
+
+  /* --- animación ágil y ligera --- */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --t-fast: 0.14s;
+  --t: 0.24s;
+  --t-slow: 0.4s;
+}
+
+/* tema alternativo: Ámbar / Estudio Cálido */
+html[data-theme="amber"] {
+  --accent: #f59e0b;
+  --gold: #f59e0b;
+  --cyan: #f59e0b;
+  --cyan-soft: #fde68a;
+  --line: rgba(245, 158, 11, 0.12);
+  --line-2: rgba(245, 158, 11, 0.22);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --t-fast: 0s;
+    --t: 0s;
+    --t-slow: 0s;
+  }
+}
+
+
+
+
+

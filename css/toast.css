@@ -1,0 +1,65 @@
+﻿/* ============================================================
+   toast.css â€” avisos flotantes del sistema
+   ============================================================ */
+.toast-root {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--statusbar-h) + 16px);
+  transform: translateX(-50%);
+  z-index: 90;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  pointer-events: none;
+  width: min(420px, calc(100vw - 32px));
+}
+
+.toast {
+  --toast-color: var(--cyan);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--toast-color) 40%, transparent);
+  border-left: 3px solid var(--toast-color);
+  border-radius: var(--radius-sm);
+  background: rgba(6, 10, 20, .94);
+  box-shadow: var(--shadow-panel), 0 0 22px color-mix(in srgb, var(--toast-color) 18%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-size: 12.5px;
+  color: var(--text);
+  pointer-events: auto;
+  animation: toastin .34s var(--ease-out);
+  overflow: hidden;
+}
+.toast.is-out { animation: toastout .3s var(--ease) forwards; }
+.toast__icon {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--toast-color);
+  text-shadow: 0 0 8px var(--toast-color);
+}
+.toast__text { flex: 1 1 auto; }
+.toast__text b { color: var(--toast-color); }
+.toast__bar {
+  position: absolute;
+  left: 0; bottom: 0;
+  height: 2px;
+  width: 100%;
+  background: var(--toast-color);
+  transform-origin: left;
+  animation: toastbar 3.2s linear forwards;
+}
+.toast--ok { --toast-color: var(--lime); }
+.toast--warn { --toast-color: var(--amber); }
+.toast--error { --toast-color: var(--red); }
+.toast--info { --toast-color: var(--cyan); }
+.toast--magenta { --toast-color: var(--magenta); }
+
+
+
+

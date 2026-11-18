@@ -1,0 +1,369 @@
+/* ============================================================
+   node.css — Nodos de obra, hubs de técnica y núcleo central (Elegante)
+   ============================================================ */
+.node {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate3d(calc(var(--x, 0) * 1px - 50%), calc(var(--y, 0) * 1px - 50%), 0);
+  will-change: transform;
+  --node-accent: var(--accent);
+  --cat-color: var(--accent);
+}
+
+/* ---------------- nodo de obra (tarjeta holográfica en el grafo) ---------------- */
+.node--art {
+  width: var(--node-w, 240px);
+  cursor: pointer;
+  perspective: 900px;
+  transform-style: preserve-3d;
+  transition: opacity var(--t) var(--ease), filter var(--t) var(--ease);
+}
+
+.node__frame {
+  position: relative;
+  padding: 10px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  box-shadow: var(--shadow-node);
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0);
+  transform-style: preserve-3d;
+  transition: transform 0.16s ease-out, box-shadow var(--t) var(--ease), border-color var(--t) var(--ease);
+  overflow: hidden;
+}
+
+/* Efecto de reflejo holográfico e iridiscente tipo tarjeta coleccionable */
+.node__holo {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 5;
+  opacity: var(--holo-o, 0);
+  background: 
+    radial-gradient(
+      circle 170px at var(--mx, 50%) var(--my, 50%),
+      rgba(255, 255, 255, 0.45) 0%,
+      rgba(255, 255, 255, 0.12) 35%,
+      transparent 70%
+    ),
+    linear-gradient(
+      115deg,
+      transparent 12%,
+      rgba(0, 234, 255, 0.28) 26%,
+      rgba(255, 46, 151, 0.32) 44%,
+      rgba(255, 230, 0, 0.26) 58%,
+      rgba(0, 255, 204, 0.28) 72%,
+      transparent 88%
+    );
+  mix-blend-mode: color-dodge;
+  background-size: 100% 100%, 200% 200%;
+  background-position: center, calc(var(--mx, 50%) * 1.6) calc(var(--my, 50%) * 1.6);
+  transition: opacity 0.25s ease;
+}
+
+.node__holo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1.5px solid transparent;
+  background: linear-gradient(135deg, rgba(0, 234, 255, 0.6), rgba(255, 46, 151, 0.6), rgba(255, 230, 0, 0.5)) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+/* Efecto de reflejo especular / brillo de cristal para nodos estándar (no holográficos) */
+.node__reflect {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 5;
+  opacity: var(--reflect-o, 0);
+  background: 
+    radial-gradient(
+      circle 200px at var(--mx, 50%) var(--my, 50%),
+      rgba(255, 255, 255, 0.32) 0%,
+      rgba(255, 255, 255, 0.1) 32%,
+      transparent 65%
+    ),
+    linear-gradient(
+      115deg,
+      transparent 18%,
+      rgba(255, 255, 255, 0.04) 32%,
+      rgba(255, 255, 255, 0.22) 50%,
+      rgba(255, 255, 255, 0.04) 68%,
+      transparent 82%
+    );
+  mix-blend-mode: overlay;
+  background-size: 100% 100%, 200% 200%;
+  background-position: center, calc(var(--mx, 50%) * 1.5) calc(var(--my, 50%) * 1.5);
+  transition: opacity 0.25s ease;
+}
+
+.node__reflect::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.15)) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.node:not(.node--holo):hover .node__reflect {
+  opacity: var(--reflect-o, 0.85);
+}
+
+.node__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-mute);
+}
+.node__dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--node-accent, var(--accent));
+  flex: 0 0 auto;
+}
+.node__id { color: var(--text-dim); }
+.node__head .node__lead {
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--line);
+}
+
+/* ---------------- miniatura visible completa en el grafo ---------------- */
+.node__thumb {
+  position: relative;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: #06080e;
+  border: 1px solid var(--line);
+  aspect-ratio: 16 / 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.node__img,
+.node__canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.node__meta { padding: 10px 2px 2px; }
+.node__title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.node__tech {
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--text-mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.node__tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.node__tag {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line);
+}
+.node__tag--more { color: var(--text-mute); }
+
+.node__fav {
+  position: absolute;
+  top: 8px; right: 8px;
+  z-index: 3;
+  width: 28px; height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 13px;
+  color: var(--text-mute);
+  background: rgba(9, 10, 15, 0.85);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  transform: scale(0.9);
+  transition: all var(--t-fast) var(--ease);
+  cursor: pointer;
+}
+.node:hover .node__fav, .node.is-selected .node__fav { opacity: 1; transform: none; }
+.node__fav:hover { color: var(--amber); border-color: var(--amber); }
+.node__fav.is-on { opacity: 1; transform: none; color: var(--amber); }
+
+.node__fav.node__edit { right: 40px; }
+.node__fav.node__edit:hover { color: var(--text); border-color: var(--line-strong); }
+
+/* hover e interacción de nodos en el grafo */
+.node--art:hover {
+  z-index: 6;
+}
+.node--art:hover .node__frame {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-4px) scale(1.03) translateZ(10px);
+  border-color: var(--node-accent, var(--accent));
+  box-shadow: 
+    0 20px 42px rgba(0, 0, 0, 0.65), 
+    0 0 20px color-mix(in srgb, var(--node-accent, var(--accent)) 35%, transparent);
+}
+
+/* Nodos con efecto holográfico activo */
+.node--holo .node__frame {
+  border-color: rgba(0, 234, 255, 0.45);
+}
+
+.node--holo:hover .node__frame {
+  border-color: rgba(0, 234, 255, 0.85);
+  box-shadow: 
+    0 20px 42px rgba(0, 0, 0, 0.65), 
+    0 0 24px rgba(0, 234, 255, 0.4),
+    0 0 20px rgba(255, 46, 151, 0.3);
+}
+
+.node--holo:hover .node__holo {
+  opacity: var(--holo-o, 0.85);
+}
+
+/* Badge distintivo de nodo holográfico */
+.node__holo-badge {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  z-index: 4;
+  font-family: var(--font-body);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 2px 7px;
+  border-radius: 99px;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(0, 234, 255, 0.9), rgba(255, 46, 151, 0.9));
+  box-shadow: 0 0 10px rgba(0, 234, 255, 0.6);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+.node.is-selected { z-index: 6; }
+.node.is-selected .node__frame {
+  border-color: var(--node-accent, var(--accent));
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.6), 0 0 0 2px var(--node-accent, var(--accent));
+}
+.node.is-related .node__frame {
+  box-shadow: 0 0 0 1px var(--accent-2), 0 0 16px rgba(244, 63, 94, 0.2);
+}
+.node.is-dim { opacity: 0.25; filter: grayscale(0.6); }
+.node.is-filtered { opacity: 0; pointer-events: none; }
+
+/* ---------------- hub de técnica ---------------- */
+.node--hub { width: var(--hub-size); cursor: pointer; }
+.hub {
+  position: relative;
+  width: var(--hub-size);
+  height: var(--hub-size);
+  border-radius: 50%;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 4px;
+  background: var(--surface-2);
+  border: 2px solid var(--node-accent, var(--accent));
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  transition: transform var(--t) var(--ease);
+}
+.hub__icon {
+  font-size: 22px;
+  line-height: 1;
+  color: var(--node-accent, var(--accent));
+}
+.hub__label {
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: center;
+  padding: 0 10px;
+  color: var(--text);
+}
+.hub__count {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--node-accent, var(--accent));
+}
+.node--hub:hover .hub {
+  transform: scale(1.08);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.6), 0 0 20px color-mix(in srgb, var(--node-accent, var(--accent)) 30%, transparent);
+}
+.node--hub.is-selected .hub {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 3px #fff, 0 0 26px var(--node-accent, var(--accent));
+}
+.node--hub.is-dim { opacity: 0.25; filter: grayscale(0.6); }
+
+/* ---------------- núcleo central ---------------- */
+.node--core { width: var(--core-size); cursor: pointer; }
+.core {
+  position: relative;
+  width: var(--core-size);
+  height: var(--core-size);
+  border-radius: 50%;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, #1c2132, #10131d);
+  border: 2px solid var(--accent);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5), 0 0 24px rgba(212, 163, 115, 0.25);
+  transition: transform var(--t) var(--ease);
+}
+.core__label {
+  font-family: var(--font-display);
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #fff;
+  text-align: center;
+}
+.core__sub {
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+.node--core:hover .core {
+  transform: scale(1.06);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(212, 163, 115, 0.4);
+}

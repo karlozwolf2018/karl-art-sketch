@@ -1,0 +1,661 @@
+/* ============================================================
+   gallery.css — Rejilla de obras en modo galería (Elegante & Minimalista)
+   ============================================================ */
+.gallery {
+  padding: 84px 32px 50px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 24px;
+  align-content: start;
+}
+
+/* ---------------- cabecera fija ---------------- */
+.gallery__head {
+  position: fixed;
+  top: var(--topbar-h);
+  left: var(--panel-w);
+  right: 0;
+  z-index: 18;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 32px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--text-mute);
+  text-transform: uppercase;
+}
+.gallery__head b { color: var(--accent); }
+.gallery__head[hidden],
+.gallery[hidden],
+.gallery__collections[hidden] { display: none !important; }
+.gallery__back {
+  padding: 6px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+}
+.gallery__back:hover { background: rgba(0, 234, 255, 0.1); }
+.gallery__sort {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.gallery__sort select {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  padding: 6px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  outline: none;
+}
+.gallery__sort select:focus {
+  border-color: var(--accent);
+}
+
+/* ---------------- selector de galerías ---------------- */
+.gallery__collections {
+  grid-column: 1 / -1;
+  width: min(100%, 1040px);
+  margin: 30px auto;
+  padding: 28px;
+  align-self: start;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+}
+.gallery__collections-title {
+  margin: 0 0 22px;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 22px;
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+.gallery__collection-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.gallery__collection {
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  aspect-ratio: 4 / 5;
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  background:
+    radial-gradient(ellipse at 50% 35%, rgba(0, 234, 255, .18), transparent 54%),
+    linear-gradient(145deg, var(--surface-3), var(--surface));
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .22);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast), transform var(--t-fast);
+}
+.gallery__collection-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  background: transparent;
+}
+.gallery__collection-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(4, 7, 14, .16), transparent 28%, transparent 48%, rgba(4, 7, 14, .82)),
+    linear-gradient(115deg, rgba(0, 234, 255, .08), transparent 45%, rgba(255, 46, 151, .08));
+  transition: background-color var(--t-fast);
+}
+.gallery__collection-img,
+.gallery__collection-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  transition: transform .45s var(--ease-out), filter .45s var(--ease-out);
+}
+.gallery__collection-name,
+.gallery__collection-count {
+  position: absolute;
+  z-index: 1;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, .75);
+}
+.gallery__collection-name {
+  right: 12px;
+  bottom: 14px;
+  left: 14px;
+  text-align: left;
+}
+.gallery__collection-count {
+  top: 10px;
+  right: 10px;
+  min-width: 30px;
+  padding: 5px 9px;
+  border: 1px solid rgba(255, 255, 255, .38);
+  border-radius: 99px;
+  background: rgba(4, 7, 14, .56);
+  backdrop-filter: blur(8px);
+  font: 600 12px var(--font-mono);
+  text-align: center;
+}
+.gallery__collection:hover {
+  border-color: var(--accent);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, .34), 0 0 20px rgba(0, 234, 255, .18);
+}
+.gallery__collection:hover .gallery__collection-img,
+.gallery__collection:hover .gallery__collection-canvas {
+  transform: scale(1.07);
+  filter: saturate(1.14) contrast(1.04);
+}
+.gallery__collection:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* ---------------- tarjeta de obra ---------------- */
+.card {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  overflow: hidden;
+  cursor: pointer;
+  --cat-color: var(--accent);
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0);
+  transform-style: preserve-3d;
+  transition: transform 0.16s ease-out, border-color var(--t) var(--ease), box-shadow var(--t) var(--ease);
+  overflow: hidden;
+  will-change: transform;
+}
+.card:hover {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(10px) translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), 0 0 24px color-mix(in srgb, var(--cat-color) 25%, transparent);
+}
+.card.is-dim { opacity: 0.35; filter: grayscale(0.5); }
+.card.is-hidden { display: none; }
+
+/* Efecto de reflejo holográfico e iridiscente tipo tarjeta coleccionable */
+.card__holo {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 5;
+  opacity: var(--holo-o, 0);
+  background: 
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 0, 255, 0.25) 0%,
+      rgba(0, 255, 255, 0.25) 10%,
+      rgba(255, 255, 0, 0.25) 20%,
+      rgba(0, 255, 0, 0.25) 30%,
+      rgba(255, 0, 255, 0.25) 40%
+    ),
+    linear-gradient(
+      115deg,
+      rgba(255,255,255,0.4) 0%,
+      rgba(255,255,255,0) 50%,
+      rgba(0,0,0,0.3) 100%
+    );
+  mix-blend-mode: overlay;
+  background-size: 200% 200%, 100% 100%;
+  background-position: calc(var(--mx,50%) * 2) calc(var(--my,50%) * 2), center;
+  transition: opacity 0.3s ease;
+  filter: brightness(1.2) contrast(1.1);
+}
+
+.card__holo::before {
+  display: none;
+}
+
+/* Efecto de reflejo especular / brillo de cristal para cartas estándar (no holográficas) */
+.card__reflect {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 5;
+  opacity: var(--reflect-o, 0);
+  background: 
+    radial-gradient(
+      circle 260px at var(--mx, 50%) var(--my, 50%),
+      rgba(255, 255, 255, 0.32) 0%,
+      rgba(255, 255, 255, 0.1) 32%,
+      transparent 65%
+    ),
+    linear-gradient(
+      115deg,
+      transparent 18%,
+      rgba(255, 255, 255, 0.04) 32%,
+      rgba(255, 255, 255, 0.22) 50%,
+      rgba(255, 255, 255, 0.04) 68%,
+      transparent 82%
+    );
+  mix-blend-mode: overlay;
+  background-size: 100% 100%, 200% 200%;
+  background-position: center, calc(var(--mx, 50%) * 1.5) calc(var(--my, 50%) * 1.5);
+  transition: opacity 0.25s ease;
+}
+
+.card__reflect::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.15)) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.card:not(.card--holo):hover .card__reflect {
+  opacity: var(--reflect-o, 0.85);
+}
+
+.card:hover .card__holo {
+  opacity: var(--holo-o, 0.85);
+}
+
+.card--holo {
+  border-color: rgba(0, 234, 255, 0.45);
+  position: relative;
+}
+
+.card--holo:hover {
+  border-color: rgba(0, 234, 255, 0.85);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), 0 0 24px rgba(0, 234, 255, 0.35), 0 0 16px rgba(255, 46, 151, 0.25);
+}
+
+/* Estado vacío de la galería */
+.card__media {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 11;
+  background: #06080e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card__media img,
+.card__media canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: translate3d(var(--parallax-x, 0px), var(--parallax-y, 0px), 0) scale(1.04);
+  transition: transform .24s var(--ease);
+  will-change: transform;
+}
+.card:hover .card__media img,
+.card:hover .card__media canvas {
+  transform: translate3d(var(--parallax-x, 0px), var(--parallax-y, 0px), 0) scale(1.08);
+}
+
+@media (hover: none), (prefers-reduced-motion: reduce) {
+  .card__media img,
+  .card__media canvas,
+  .card:hover .card__media img,
+  .card:hover .card__media canvas {
+    transform: none;
+    transition: none;
+    will-change: auto;
+  }
+}
+
+.card__badge {
+  position: absolute;
+  top: 12px; left: 12px;
+  z-index: 2;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 99px;
+  color: #fff;
+  background: rgba(9, 10, 15, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+}
+.card__fav {
+  position: absolute;
+  top: 10px; right: 10px;
+  z-index: 3;
+  width: 32px; height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 14px;
+  color: var(--text-mute);
+  background: rgba(9, 10, 15, 0.85);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: all var(--t-fast) var(--ease);
+}
+.card__fav:hover { color: var(--amber); border-color: var(--amber); transform: scale(1.1); }
+.card__fav.is-on { color: var(--amber); }
+
+/* herramientas de la tarjeta (eliminadas de la parte superior derecha) */
+.card__tool, .card__edit, .card__del { display: none !important; }
+
+.card__status {
+  position: absolute;
+  bottom: 12px; left: 12px;
+  z-index: 2;
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  background: rgba(9, 10, 15, 0.85);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.card__status.is-available { color: var(--ok); }
+
+.card__info {
+  position: relative;
+  z-index: 2;
+  padding: 16px 18px 18px;
+  display: grid;
+  gap: 8px;
+}
+.card__title {
+  font-family: var(--font-display);
+  font-size: 17.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  line-height: 1.3;
+}
+.card__tech {
+  font-size: 13.5px;
+  color: var(--text-mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.card__tag {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-dim);
+  border: 1px solid var(--line);
+}
+.card__foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 12.5px;
+  color: var(--text-mute);
+}
+
+/* Etiquetas debajo del título con íconos y tooltips */
+.card__labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.card__label-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--line-2);
+  cursor: default;
+  transition: all var(--t-fast) var(--ease);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.card__label-icon:hover {
+  background: var(--accent);
+  color: #0b0d14;
+  transform: scale(1.15);
+  border-color: var(--accent);
+}
+
+.card__label-icon::after {
+  content: attr(data-label);
+  position: absolute;
+  bottom: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s, transform 0.15s;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.card__label-icon:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-4px);
+}
+
+/* Estado disponible */
+.card__label-available {
+  background: rgba(52, 211, 151, 0.15);
+  border-color: var(--ok);
+  color: var(--ok);
+}
+
+.card__label-available::before { content: "○"; } /* círculo vacío = disponible */
+
+.card__label-available.is-on::before { content: "●"; } /* círculo relleno = disponible */
+
+/* Estado no disponible/colectivo */
+.card__label-unavailable {
+  background: rgba(244, 63, 94, 0.15);
+  border-color: var(--magenta);
+  color: var(--magenta);
+}
+
+.card__label-unavailable::before { content: "○"; }
+
+/* Estado vendido */
+.card__label-sold {
+  background: rgba(167, 138, 250, 0.15);
+  border-color: #a78bfa;
+  color: #a78bfa;
+}
+
+.card__label-sold::before { content: "✓"; }
+
+/* Estado reservado */
+.card__label-reserved {
+  background: rgba(244, 63, 94, 0.15);
+  border-color: var(--magenta);
+  color: var(--magenta);
+}
+
+.card__label-reserved::before { content: "⧖"; }
+
+/* Estado archivo/archivado */
+.card__label-archive {
+  background: rgba(99, 102, 104, 0.15);
+  border-color: #6b7280;
+  color: #6b7280;
+}
+
+.card__label-archive::before { content: "📁"; }
+
+/* Estado exposición */
+.card__label-exhibition {
+  background: rgba(166, 184, 252, 0.15);
+  border-color: #a3b1ff;
+  color: #a3b1ff;
+}
+
+.card__label-exhibition::before { content: "🎨"; }
+
+/* Categoría (badge actual ahora como ícono debajo) */
+.card__label-category {
+  background: color-mix(in srgb, var(--cat-color, var(--accent)) 15%, transparent);
+  border-color: var(--cat-color, var(--accent));
+  color: var(--cat-color, var(--accent));
+}
+
+.card__label-category::before { content: attr(data-category-icon); }
+
+/* ── barra de paleta de colores ── */
+.card__palette-bar {
+  display: flex;
+  height: 18.9px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.3);
+}
+.card__palette-bar.is-hidden {
+  display: none;
+}
+.card__swatch {
+  display: block;
+  position: relative;
+  height: 18.9px;
+  min-width: 0;
+  flex: 1;
+  cursor: default;
+  transition: flex var(--t-fast) var(--ease);
+}
+.card__swatch::after {
+  content: attr(data-color);
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: rgba(6, 8, 14, 0.92);
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s, transform 0.15s;
+  z-index: 10;
+}
+.card:hover .card__swatch:hover {
+  flex: 2.5;
+}
+.card:hover .card__swatch:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── puntos mini en el footer ── */
+.card__palette { display: inline-flex; gap: 3px; align-items: center; }
+.card__palette-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  flex-shrink: 0;
+}
+.card__cat {
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--cat-color, var(--accent));
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+/* ---------------- estado vacío de la galería ---------------- */
+.gallery__empty {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 70px 24px;
+  border: 1px dashed var(--line-2);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.015);
+  margin-top: 40px;
+}
+.gallery__empty-icon {
+  font-size: 38px;
+  margin-bottom: 14px;
+  opacity: 0.6;
+}
+.gallery__empty-title {
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.gallery__empty-text {
+  font-size: 15px;
+  color: var(--text-dim);
+  max-width: 460px;
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+.gallery__empty-hint {
+  font-size: 13.5px;
+  color: var(--text-mute);
+  margin-bottom: 22px;
+}
