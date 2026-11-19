@@ -9,6 +9,11 @@ const pool = new pg.Pool({
 async function migrate() {
   const client = await pool.connect();
   try {
+    // Crear esquema si no existe
+    const schema = fs.readFileSync('./schema.sql', 'utf8');
+    await client.query(schema);
+    console.log('✅ Esquema creado/verificado');
+
     await client.query('BEGIN');
 
     await client.query('DELETE FROM artwork_tags');
