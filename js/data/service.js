@@ -12,11 +12,13 @@
 (function (CYBER) {
   'use strict';
 
+  const API_BASE = 'https://karl-art-sketch.onrender.com';
+
   const SOURCES = {
     config: 'data/config.json',
-    categories: 'data/categories.json',
-    artworks: 'data/artworks.json',
-    tags: 'data/tags.json'
+    categories: API_BASE + '/api/categories',
+    artworks: API_BASE + '/api/artworks',
+    tags: API_BASE + '/api/tags'
   };
 
   const VALID_RENDERS = ['graphite', 'charcoal', 'ink', 'marker', 'mixed', 'digital'];

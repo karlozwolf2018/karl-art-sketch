@@ -11,6 +11,48 @@ const pool = new pg.Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
+// Transforma una fila de Postgres (snake_case) al formato que espera el frontend
+// (camelCase + campos planos de idioma, idéntico a data/artworks.json).
+function toArtwork(row) {
+  const l10n = row.l10n && typeof row.l10n === 'object' ? row.l10n : {};
+  const es = l10n.es || {};
+  const en = l10n.en || {};
+  return {
+    id: row.id,
+    imageUrl: row.image_url || '',
+    materialsImageUrl: row.materials_image_url || '',
+    gallery: row.gallery || '',
+    holographic: !!row.holographic,
+    index: row.index,
+    code: row.code || '',
+    category: row.category || '',
+    color: row.color || '',
+    accent: row.accent || '',
+    icon: row.icon || '',
+    year: row.year,
+    size: row.size || '',
+    paper: row.paper || '',
+    grammage: row.grammage || '',
+    brand: row.brand || '',
+    minutes: row.minutes || 0,
+    hours: row.hours || 0,
+    status: row.status || '',
+    available: !!row.available,
+    seed: row.seed,
+    render: row.render || '',
+    featured: !!row.featured,
+    palette: Array.isArray(row.palette) ? row.palette : [],
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    l10n: l10n,
+    title: es.title || '',
+    technique: es.technique || '',
+    materials: es.materials || '',
+    description: es.description || '',
+    story: es.story || '',
+    en: en
+  };
+}
+
 app.get('/', (req, res) => {
   res.json({
     status: 'ok',
@@ -21,8 +63,8 @@ app.get('/', (req, res) => {
 
 app.get('/api/artworks', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM artworks ORDER BY created_at DESC');
-    res.json(result.rows);
+    const result = await pool.query('SELECT * FROM artworks ORDER BY "index" ASC');
+    res.json({ artworks: result.rows.map(toArtwork) });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -31,7 +73,7 @@ app.get('/api/artworks', async (req, res) => {
 app.get('/api/artworks/:id', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM artworks WHERE id = $1', [req.params.id]);
-    res.json(result.rows[0] || null);
+    res.json(result.rows[0] ? toArtwork(result.rows[0]) : null);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -39,8 +81,8 @@ app.get('/api/artworks/:id', async (req, res) => {
 
 app.get('/api/categories', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM categories');
-    res.json(result.rows);
+    const result = await pool.query('SELECT * FROM categories ORDER BY id');
+    res.json({ categories: result.rows });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -48,8 +90,12 @@ app.get('/api/categories', async (req, res) => {
 
 app.get('/api/tags', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM tags');
-    res.json(result.rows);
+    const result = await pool.query('SELECT * FROM tags ORDER BY id');
+    const tags = {};
+    result.rows.forEach(function (t) {
+      tags[t.id] = { es: t.es, en: t.en };
+    });
+    res.json({ tags: tags });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
