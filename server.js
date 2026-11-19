@@ -1,6 +1,11 @@
 import express from 'express';
 import pg from 'pg';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors());
@@ -12,7 +17,6 @@ const pool = new pg.Pool({
 });
 
 // Transforma una fila de Postgres (snake_case) al formato que espera el frontend
-// (camelCase + campos planos de idioma, idéntico a data/artworks.json).
 function toArtwork(row) {
   const l10n = row.l10n && typeof row.l10n === 'object' ? row.l10n : {};
   const es = l10n.es || {};
@@ -53,7 +57,8 @@ function toArtwork(row) {
   };
 }
 
-app.get('/', (req, res) => {
+// Rutas API
+app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     service: 'karl-sketch-api',
@@ -101,5 +106,13 @@ app.get('/api/tags', async (req, res) => {
   }
 });
 
+// Servir archivos estáticos del frontend (HTML, CSS, JS)
+app.use(express.static(__dirname));
+
+// Fallback para SPA o cualquier otra ruta
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`API running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
