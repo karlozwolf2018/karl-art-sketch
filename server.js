@@ -11,6 +11,14 @@ const pool = new pg.Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
+app.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'karl-sketch-api',
+    endpoints: ['/api/artworks', '/api/artworks/:id', '/api/categories', '/api/tags']
+  });
+});
+
 app.get('/api/artworks', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM artworks ORDER BY created_at DESC');
