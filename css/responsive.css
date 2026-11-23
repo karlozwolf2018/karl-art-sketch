@@ -767,6 +767,46 @@
     margin-left: auto;
   }
 }
+
+/* ==================== CONTADORES SUPERIORES EN MÓVIL ==================== */
+@media (max-width: 480px) {
+  .statusbar__seg:nth-child(1),
+  .statusbar__seg:nth-child(2) {
+    position: fixed;
+    z-index: 45;
+    top: calc(var(--topbar-h) + 6px);
+    height: 28px;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 5px;
+    margin: 0;
+    padding: 5px 8px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    font-size: 9px;
+  }
+
+  .statusbar__seg:nth-child(1) {
+    right: 88px;
+  }
+
+  .statusbar__seg:nth-child(2) {
+    right: 8px;
+  }
+
+  .statusbar__seg:nth-child(1) b,
+  .statusbar__seg:nth-child(2) b {
+    font-size: 8px;
+  }
+
+  .statusbar__seg:nth-child(1) span,
+  .statusbar__seg:nth-child(2) span {
+    min-width: 12px;
+    text-align: right;
+  }
+}
 @media print {
   .bg, .topbar, .panel, .toolbar, .statusbar, .modal__foot, .toast-root, .loader { display: none !important; }
   body { background: #fff; color: #000; overflow: visible; }
