@@ -12,7 +12,7 @@
 (function (CYBER) {
   'use strict';
 
-  const API_BASE = 'https://karl-art-sketch.onrender.com';
+  const API_BASE = location.protocol === 'file:' ? '' : '';
 
   const SOURCES = {
     config: 'data/config.json',

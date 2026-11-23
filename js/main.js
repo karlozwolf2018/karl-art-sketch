@@ -155,6 +155,12 @@
       if (section) section.classList.toggle('is-active', name === target);
     });
 
+    document.querySelectorAll('[data-view]').forEach(function (button) {
+      if (button.closest('#view-nav') || button.closest('#mobile-nav')) {
+        button.classList.toggle('is-active', button.dataset.view === target);
+      }
+    });
+
     if (app.toolbar) app.toolbar.setView(target);
     CYBER.store.set('view', target);
     savePrefs({ view: target });
@@ -269,6 +275,23 @@
         });
       }
     });
+  }
+
+  function bindViewNavigation() {
+    document.querySelectorAll('[data-view]').forEach(function (button) {
+      if (!button.closest('#view-nav') && !button.closest('#mobile-nav')) return;
+      button.addEventListener('click', function () {
+        setView(button.dataset.view);
+      });
+    });
+
+    const brand = document.getElementById('brand');
+    if (brand) {
+      brand.addEventListener('click', function (evt) {
+        evt.preventDefault();
+        setView('graph');
+      });
+    }
   }
 
   function bindKeyboard() {
@@ -466,8 +489,11 @@
         if (parsed.prefs)    CYBER.Prefs.write(parsed.prefs);
         if (parsed.userData) CYBER.UserData.write(parsed.userData);
 
-        const count = (parsed.userData && parsed.userData.artworks)
-          ? parsed.userData.artworks.length : 0;
+        const restored = parsed.userData || {};
+        const count = (Array.isArray(restored.created) ? restored.created.length : 0)
+          + (restored.updated && typeof restored.updated === 'object'
+            ? Object.keys(restored.updated).length : 0)
+          + (Array.isArray(restored.deleted) ? restored.deleted.length : 0);
 
         bus.emit(E.TOAST, { type: 'ok', text: '✓ Restauración completada · ' + count + ' obras cargadas' });
 
@@ -880,6 +906,7 @@
       bindBus();
       bindKeyboard();
       bindProtection();
+      bindViewNavigation();
       startClock();
       initBackupMenu();
 

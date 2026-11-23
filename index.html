@@ -17,6 +17,7 @@
 
 <!-- ===================== HOJA DE ESTILOS DE PRODUCCIÓN UNIFICADA ===================== -->
 <link rel="stylesheet" href="css/app.min.css?v=20261110-space-hover">
+    <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body class="is-booting">
 
@@ -52,6 +53,13 @@
       <button class="navtab is-active" data-view="graph"><span class="navtab__dot"></span><span data-i18n="ui.nav.graph">GRAFO</span></button>
       <button class="navtab" data-view="gallery"><span class="navtab__dot"></span><span data-i18n="ui.nav.gallery">GALERÍA</span></button>
       <button class="navtab" data-view="about"><span class="navtab__dot"></span><span data-i18n="ui.nav.info">INFO</span></button>
+    </nav>
+
+    <!-- Menú de navegación móvil -->
+    <nav class="navtabs-mobile" id="mobile-nav" aria-label="Navegación móvil">
+      <button class="navtabs-mobile__btn is-active" data-view="graph">G</button>
+      <button class="navtabs-mobile__btn" data-view="gallery">L</button>
+      <button class="navtabs-mobile__btn" data-view="about">I</button>
     </nav>
 
     <div class="topbar__right">
@@ -421,7 +429,7 @@
   pointer-events: none!important;
   z-index: 5!important;
   opacity: var(--holo-o, 0)!important;
-  background: 
+  background:
     repeating-linear-gradient(
       135deg,
       rgba(255, 0, 255, 0.25) 0%,

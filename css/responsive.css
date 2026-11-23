@@ -1,8 +1,15 @@
-﻿/* ============================================================
-   responsive.css â€” adaptaciones de tamaÃ±o y tÃ¡ctil
+/* ============================================================
+   responsive.css — adaptaciones de tamaño y táctil
    ============================================================ */
 
-/* ---------------- portÃ¡tiles pequeÃ±os ---------------- */
+/* ==================== VARIABLES MÓVIL ==================== */
+:root {
+  --topbar-h-mobile: 56px;
+  --statusbar-h-mobile: 40px;
+  --panel-w-mobile: 240px;
+}
+
+/* ---------------- portátiles pequeños ---------------- */
 @media (max-width: 1240px) {
   :root {
     --panel-w: 240px;
@@ -23,16 +30,17 @@
   .graph__minimap { width: 158px; height: 112px; }
 }
 
-/* ---------------- mÃ³vil horizontal / tablet vertical ---------------- */
+/* ==================== MÓVIL HORIZONTAL / TABLET VERTICAL ==================== */
 @media (max-width: 860px) {
   :root {
-    --topbar-h: 56px;
+    --topbar-h: var(--topbar-h-mobile);
+    --statusbar-h: var(--statusbar-h-mobile);
     --node-w: 172px;
   }
 
   body { font-size: 12.5px; }
 
-  /* el panel pasa a cajÃ³n lateral */
+  /* ----------- PANEL COMO CAJÓN LATERAL ----------- */
   .workspace { grid-template-columns: 1fr; }
   .panel {
     position: fixed;
@@ -46,18 +54,49 @@
     box-shadow: var(--shadow-panel);
   }
   body.is-panel-open .panel { transform: none; }
-  .topbar__burger { display: inline-flex; }
-  .stage-area { border-left: 0; }
-  .gallery__head { left: 0; }
 
-  .topbar { grid-template-columns: auto 1fr auto; gap: 10px; }
-  .topbar__nav { justify-self: end; }
-  .navtab { padding: 7px 12px; }
-  .searchbox { width: 40px; padding: 0 12px; }
+  /* ----------- BARRA SUPERIOR MÓVIL ----------- */
+  .topbar__burger { display: inline-flex; }
+  .topbar__burger span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: currentColor;
+    transition: transform var(--t-fast) var(--ease);
+  }
+  .topbar__burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .topbar__burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+  .topbar__burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+  .topbar {
+    grid-template-columns: auto 1fr auto;
+    gap: 8px;
+    padding: 0 10px;
+    height: var(--topbar-h);
+    align-items: center;
+  }
+  .topbar__nav {
+    justify-self: end;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .navtab {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+  .navtab__dot {
+    width: 5px;
+    height: 5px;
+  }
+
+  /* ----------- BUSCADOR MÓVIL ----------- */
+  .searchbox { width: 36px; padding: 0 10px; }
   .searchbox input, .searchbox__kbd, .searchbox__count { display: none; }
   .searchbox.is-open {
     position: absolute;
-    top: 8px; left: 12px; right: 12px;
+    top: 8px;
+    left: 12px;
+    right: 12px;
     width: auto;
     z-index: 40;
     background: rgba(4, 7, 14, .98);
@@ -65,11 +104,14 @@
   .searchbox.is-open input { display: block; }
   .searchbox.is-open .searchbox__kbd { display: none; }
 
-  .toolbar { top: 10px; }
+  /* ----------- TOOLBAR MÓVIL ----------- */
+  .toolbar { top: 8px; }
   .graph__legend { display: none; }
   .graph__minimap { display: none; }
   .graph__hint { font-size: 10px; padding: 6px 10px; }
 
+  /* ----------- CONTENIDO MÓVIL ----------- */
+  .stage-area { border-left: 0; }
   .modal-root { padding: 0; }
   .modal {
     width: 100%;
@@ -78,18 +120,42 @@
     border-radius: 0;
     border-left: 0; border-right: 0;
   }
-  .modal__head { padding: 14px 14px 12px; }
-  .modal__body { padding: 14px; }
-  .modal__foot { padding: 10px 12px; flex-wrap: wrap; }
+  .modal__head { padding: 12px 12px 10px; }
+  .modal__body { padding: 12px; }
+  .modal__foot { padding: 8px 10px; flex-wrap: wrap; }
 
-  .gallery { padding: 70px 12px 30px; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
-  .gallery__head { padding: 8px 12px; font-size: 10px; gap: 8px; }
-  .gallery__collections { margin: 18px auto; padding: 18px; }
-  .gallery__collection-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  .gallery__collection { font-size: 14px; }
+  /* ----------- GALERÍA MÓVIL ----------- */
+  .gallery__head {
+    left: 12px;
+    right: 12px;
+    padding: 8px 12px;
+    font-size: 11px;
+    gap: 6px;
+  }
+  .gallery__head b { font-size: 13px; }
+  .gallery__collections {
+    padding: 16px;
+    margin: 14px auto;
+    border-radius: var(--radius-sm);
+  }
+  .gallery__collections-title { font-size: 16px; }
+  .gallery__collection-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .gallery__collection { font-size: 13px; padding: 6px; }
+
+  /* ----------- CARDS MÓVIL ----------- */
+  .card__title { font-size: 14px; }
+  .card__info { padding: 10px 12px 12px; }
+  .card__tool, .card__edit, .card__del { display: none !important; }
+  .card__fav { opacity: 1; transform: none; }
+  .gallery__back {
+    position: absolute;
+    top: var(--topbar-h);
+    left: 12px;
+    z-index: 20;
+  }
 }
 
-/* ---------------- mÃ³vil vertical ---------------- */
+/* ---------------- móvil vertical ---------------- */
 @media (max-width: 560px) {
   :root {
     --node-w: 158px;
@@ -117,13 +183,493 @@
   .graph__hint { display: none; }
 }
 
-/* ---------------- pantallas tÃ¡ctiles ---------------- */
+/* ==================== MÓVIL ULTRA-PEQUEÑO (480px y menos) ==================== */
+@media (max-width: 480px) {
+  :root {
+    --topbar-h: 52px;
+    --statusbar-h: 28px;
+    --node-w: 145px;
+    --hub-size: 84px;
+    --core-size: 98px;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  body { font-size: 12px; }
+
+  /* ----------- ELEMENTOS DE LA BARRA ---------- */
+  .topbar {
+    height: var(--topbar-h);
+    padding: 0 8px;
+  }
+
+  .topbar__left { padding: 0 6px; }
+  .topbar__right { gap: 8px; }
+
+  .topbar__burger {
+    width: 32px;
+    height: 32px;
+  }
+
+  .brand__mark {
+    width: 24px;
+    height: 24px;
+  }
+
+  .brand__name {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
+
+  /* ----------- NAV Tablaras Móviles ---------- */
+  .topbar__nav {
+    display: none;
+  }
+
+  .navtabs-mobile {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid var(--line);
+    border-radius: 99px;
+    background: rgba(0, 0, 0, 0.25);
+    margin-left: auto;
+    z-index: 20;
+  }
+
+  .navtabs-mobile__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-dim);
+    border-radius: 99px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all var(--t-fast) var(--ease);
+  }
+
+  .navtabs-mobile__btn.is-active {
+    color: #fff;
+    background: var(--accent);
+  }
+
+  /* ----------- Buscador compacto ---------- */
+  .searchbox {
+    width: 28px;
+    padding: 0 6px;
+  }
+
+  .searchbox input {
+    display: none;
+  }
+
+  .searchbox.is-open {
+    position: absolute;
+    top: 8px;
+    left: 10px;
+    right: 10px;
+    z-index: 50;
+  }
+
+  /* ----------- Toolbar compacto ---------- */
+  .toolbar {
+    flex-wrap: wrap;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 8px;
+    gap: 4px;
+  }
+
+  .toolbtn {
+    height: 26px;
+    padding: 0 6px;
+    font-size: 10px;
+    min-width: 32px;
+  }
+
+  .toolbtn span {
+    display: none;
+  }
+
+  /* ----------- Nodos más pequeños ---------- */
+  .node {
+    max-width: 95vw;
+  }
+
+  .node--art {
+    max-width: 145px;
+  }
+
+  .hub {
+    width: var(--hub-size);
+    height: var(--hub-size);
+  }
+
+  .hub__icon {
+    font-size: 18px;
+  }
+
+  .hub__label {
+    font-size: 10px;
+  }
+
+  .hub__count {
+    font-size: 10px;
+  }
+
+  .core {
+    width: var(--core-size);
+    height: var(--core-size);
+  }
+
+  .core__label {
+    font-size: 12px;
+  }
+
+  /* ----------- Galería ultra-compacta ---------- */
+  .gallery {
+    padding: 55px 8px 24px;
+    gap: 8px;
+  }
+
+  .gallery__head {
+    position: absolute;
+    top: var(--topbar-h);
+    left: 10px;
+    right: 10px;
+    z-index: 20;
+  }
+
+  .gallery__collections {
+    padding: 12px;
+    margin: 12px auto;
+  }
+
+  .gallery__collection-list {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .gallery__collection {
+    height: 130px;
+    font-size: 11px;
+  }
+
+  .card {
+    min-width: 110px;
+  }
+
+  .card__title {
+    font-size: 13px;
+  }
+
+  .card__info {
+    padding: 8px 10px 10px;
+  }
+
+  .card__meta {
+    font-size: 11px;
+  }
+
+  /* ----------- Modal full-screen ---------- */
+  .modal {
+    margin: 0;
+    border-radius: 0;
+    height: 100vh;
+    max-height: 100%;
+  }
+
+  .modal__body {
+    padding: 8px;
+    overflow-y: auto;
+  }
+
+  .viewer {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .viewer__stage {
+    width: 100%;
+    height: 200px;
+    max-height: 35vh;
+    margin-bottom: 8px;
+  }
+
+  .viewer__info {
+    position: static;
+    inset: auto;
+    transform: none;
+    opacity: 1;
+    padding: 8px;
+  }
+
+  .viewer__hud {
+    font-size: 9px;
+  }
+
+  /* ----------- Panel móvil ultra-compacto ---------- */
+  .panel__scroll {
+    padding: 14px 10px 18px;
+  }
+
+  .panel__title {
+    font-size: 10px;
+  }
+
+  .catitem {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  .catitem__label {
+    font-size: 11px;
+  }
+
+  .tag {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+}
+
+/* ==================== PANTALLAS TÁCTILES ==================== */
 @media (hover: none) {
   .cursor-glow { display: none; }
   .node__fav { opacity: 1; transform: none; }
 }
 
-/* ---------------- impresiÃ³n (ficha rÃ¡pida) ---------------- */
+/* ==================== TOUCH-FRIENDLY TARGETS ==================== */
+@media (hover: none) and (pointer: coarse) {
+  .btn {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 10px 16px;
+  }
+
+  .iconbtn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .navtab {
+    padding: 10px 16px;
+    min-width: 44px;
+  }
+
+  .toolbtn {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 12px;
+  }
+
+  .tag {
+    min-height: 36px;
+    padding: 6px 12px;
+  }
+
+  .chip {
+    min-height: 32px;
+    padding: 6px 12px;
+  }
+
+  .switch__label {
+    font-size: 14px;
+  }
+
+  .catitem {
+    padding: 12px 14px;
+  }
+
+  .backupmenu__item {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+
+  .modal__title {
+    font-size: 18px;
+  }
+
+  .modal__body {
+    padding: 16px;
+  }
+}
+
+/* ==================== PANEL BACKDROP MÓVIL ==================== */
+@media (max-width: 860px) {
+  .panel-backdrop {
+    display: block;
+    top: var(--topbar-h);
+    bottom: var(--statusbar-h);
+    left: 0;
+    width: 100%;
+  }
+}
+
+/* ==================== LANDSCAPE MOBILE IMPROVEMENTS ==================== */
+@media (max-width: 768px) and (orientation: landscape) {
+  :root {
+    --topbar-h: 48px;
+    --statusbar-h: 24px;
+  }
+
+  .topbar {
+    height: var(--topbar-h);
+    padding: 0 8px;
+  }
+
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    top: var(--topbar-h);
+    bottom: var(--statusbar-h);
+    width: min(260px, 65vw);
+  }
+
+  .gallery {
+    padding: 50px 8px 20px;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+
+  .gallery__collection {
+    height: 120px;
+  }
+
+  .modal {
+    margin: 0 4px;
+    border-radius: 8px;
+  }
+
+  .modal__body {
+    padding: 8px;
+  }
+
+  .viewer__stage {
+    width: 100%;
+    height: 180px;
+    max-height: 30vh;
+  }
+}
+
+/* ==================== TABLET PORTRAIT IMPROVEMENTS ==================== */
+@media (min-width: 561px) and (max-width: 768px) {
+  :root {
+    --topbar-h: 58px;
+    --panel-w: 200px;
+    --node-w: 165px;
+  }
+
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    position: fixed;
+    top: var(--topbar-h);
+    bottom: var(--statusbar-h);
+    left: 0;
+    width: 200px;
+    z-index: 30;
+    transform: translateX(-100%);
+    transition: transform var(--t) var(--ease);
+    box-shadow: var(--shadow-panel);
+  }
+
+  body.is-panel-open .panel { transform: none; }
+
+  .topbar {
+    padding: 0 10px;
+    gap: 10px;
+  }
+
+  .topbar__nav {
+    display: flex;
+    margin-left: auto;
+    gap: 6px;
+  }
+
+  .topbar__stats {
+    display: none;
+  }
+
+  .searchbox {
+    width: auto;
+    max-width: 180px;
+  }
+
+  .searchbox input {
+    display: block;
+  }
+
+  .graph__minimap {
+    display: block;
+    position: absolute;
+    top: 85px;
+    right: 10px;
+    z-index: 10;
+  }
+
+  .node--art {
+    max-width: 165px;
+  }
+
+  .card {
+    min-width: 130px;
+  }
+}
+
+/* ==================== SCROLL OPTIMIZATIONS FOR MOBILE ==================== */
+@media (max-width: 768px) {
+  .panel__scroll {
+    scrollbar-width: thin;
+  }
+
+  .panel__scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .panel__scroll::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .panel__scroll::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 3px;
+  }
+
+  .panel__scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(212, 163, 115, 0.8);
+  }
+}
+
+/* ==================== IMPROVED VISITOR HUD FOR MOBILE ==================== */
+@media (max-width: 560px) {
+  .viewer__hud {
+    font-size: 10px;
+  }
+
+  .viewer__controls {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px 0;
+  }
+
+  .viewer__btn {
+    padding: 8px 12px;
+    font-size: 12px;
+    min-height: 36px;
+  }
+}
+
+/* ==================== IMPRINT (QUICK SHEET) ==================== */
 @media print {
   .bg, .topbar, .panel, .toolbar, .statusbar, .modal__foot, .toast-root, .loader { display: none !important; }
   body { background: #fff; color: #000; overflow: visible; }
@@ -132,4 +678,11 @@
   .modal__backdrop { display: none; }
   .meta__text, .modal__sub { color: #333; }
 }
-
+@media print {
+  .bg, .topbar, .panel, .toolbar, .statusbar, .modal__foot, .toast-root, .loader { display: none !important; }
+  body { background: #fff; color: #000; overflow: visible; }
+  .modal-root { position: static; visibility: visible; pointer-events: auto; padding: 0; }
+  .modal { box-shadow: none; border: 0; max-height: none; background: #fff; color: #000; }
+  .modal__backdrop { display: none; }
+  .meta__text, .modal__sub { color: #333; }
+}
