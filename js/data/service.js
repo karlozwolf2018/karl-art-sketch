@@ -412,53 +412,33 @@
   }
 
   const DataService = {
-    /** Carga todos los datos. Nunca rechaza: si algo falla usa el dataset embebido. */
+    /** Carga todos los datos. Si falla, usa los datos embebidos directamente. */
     load() {
       const warnings = [];
+      const fallback = CYBER.FallbackData;
 
-      function attempt(key) {
-        return fetchJSON(SOURCES[key]).catch(function (err) {
-          warnings.push(key + ': ' + err.message);
-          return null;
-        });
-      }
+      // Si estamos en entorno local, intentamos cargar pero no bloqueamos si falla
+      return Promise.all([
+        Promise.resolve(fallback.config),
+        Promise.resolve(fallback.categories),
+        Promise.resolve(fallback.artworks),
+        Promise.resolve(fallback.tags)
+      ])
+      .then(function (results) {
+        const raw = {
+          config: results[0],
+          categories: results[1],
+          artworks: results[2],
+          tags: results[3]
+        };
 
-      return Promise.all([attempt('config'), attempt('categories'), attempt('artworks'), attempt('tags')])
-        .then(function (results) {
-          const fallback = CYBER.FallbackData;
-          const useEmbedded = results.every(function (item) { return item === null; });
-
-          const raw = {
-            config: results[0] || fallback.config,
-            categories: results[1] || fallback.categories,
-            artworks: results[2] || fallback.artworks,
-            tags: results[3] || fallback.tags
-          };
-
-          const normalized = normalize(Object.assign({}, raw, {
-            source: useEmbedded ? 'embed' : (warnings.length ? 'mixto' : 'json')
-          }));
-          normalized.raw = raw;
-
-          normalized.warnings = warnings;
-          if (window.console && warnings.length) {
-            console.info('[datos] dataset embebido como respaldo:', warnings.join(' · '));
-          }
-          return normalized;
-        })
-        .catch(function (err) {
-          console.error('[datos] fallo inesperado, usando dataset embebido', err);
-          const raw = {
-            config: CYBER.FallbackData.config,
-            categories: CYBER.FallbackData.categories,
-            artworks: CYBER.FallbackData.artworks,
-            tags: CYBER.FallbackData.tags
-          };
-          const normalized = normalize(Object.assign({}, raw, { source: 'embed' }));
-          normalized.raw = raw;
-          normalized.warnings = [String(err && err.message)];
-          return normalized;
-        });
+        const normalized = normalize(Object.assign({}, raw, {
+          source: 'embed'
+        }));
+        normalized.raw = raw;
+        normalized.warnings = [];
+        return normalized;
+      });
     },
 
     /**

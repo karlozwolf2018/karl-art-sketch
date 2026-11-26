@@ -13,7 +13,8 @@
 
 /* ---------------- nodo de obra (tarjeta holográfica en el grafo) ---------------- */
 .node--art {
-  width: var(--node-w, 240px);
+  width: var(--node-w, 180px);
+  height: auto;
   cursor: pointer;
   perspective: 900px;
   transform-style: preserve-3d;
@@ -22,7 +23,7 @@
 
 .node__frame {
   position: relative;
-  padding: 10px;
+  padding: 5px;
   border: 1px solid var(--line-2);
   border-radius: var(--radius);
   background: var(--surface-2);
@@ -149,47 +150,80 @@
 }
 
 /* ---------------- miniatura visible completa en el grafo ---------------- */
+.node--art .node__frame {
+  min-width: 0;
+  border-radius: 6px;
+}
+
+.node--art .node__head {
+  display: block;
+  padding-bottom: 3px;
+  font-size: 6px;
+  line-height: 1.1;
+}
+
+.node--art .node__head .node__dot,
+.node--art .node__head .node__lead {
+  display: none;
+}
+
+.node--art .node__id {
+  display: -webkit-box;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 .node__thumb {
   position: relative;
   border-radius: var(--radius-sm);
   overflow: hidden;
-  background: #06080e;
+  background: #000;
   border: 1px solid var(--line);
-  aspect-ratio: 16 / 10;
-  display: flex;
+  aspect-ratio: 4 / 3;
+  display: flex !important;
   align-items: center;
   justify-content: center;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 .node__img,
 .node__canvas {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   display: block;
 }
 
-.node__meta { padding: 10px 2px 2px; }
+.node__meta { padding: 4px 1px 1px; }
 .node__title {
   font-family: var(--font-display);
-  font-size: 15px;
+  font-size: 9px;
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--text);
   line-height: 1.25;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 .node__tech {
-  margin-top: 4px;
-  font-size: 12.5px;
+  margin-top: 2px;
+  font-size: 6.5px;
   color: var(--text-mute);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.node__tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.node__tags {
+  display: none;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
 .node__tag {
   font-family: var(--font-body);
   font-size: 11px;
@@ -201,6 +235,88 @@
   border: 1px solid var(--line);
 }
 .node__tag--more { color: var(--text-mute); }
+
+.node--art .node__materials-container,
+.node--art .node__materials-list {
+  display: none;
+}
+
+/* Lista de materiales tipo nodo */
+.node__materials-list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.node__materials-label {
+  font-weight: 500;
+  color: var(--text-mute);
+}
+.node__material-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line);
+}
+.node__material-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+/* ==================== MATERIALES DESPLEGABLES ==================== */
+.node__materials-container {
+  margin-top: 8px;
+  font-family: var(--font-body);
+}
+.node__materials-toggle {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-mute);
+  cursor: pointer;
+  transition: all var(--t-fast) var(--ease);
+}
+.node__materials-toggle:hover {
+  color: var(--accent);
+  border-color: var(--line-strong);
+  background: rgba(255, 255, 255, 0.04);
+}
+.node__materials-content {
+  margin-top: 8px;
+  padding-left: 20px;
+  border-left: 1px solid var(--line);
+}
+.node__material-node {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 12px;
+  color: var(--text);
+}
+.node__material-node::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.node__material-node-text {
+  color: var(--text-dim);
+}
 
 .node__fav {
   position: absolute;
@@ -232,11 +348,9 @@
   z-index: 6;
 }
 .node--art:hover .node__frame {
-  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-4px) scale(1.03) translateZ(10px);
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-2px) scale(1.04) translateZ(5px);
   border-color: var(--node-accent, var(--accent));
-  box-shadow: 
-    0 20px 42px rgba(0, 0, 0, 0.65), 
-    0 0 20px color-mix(in srgb, var(--node-accent, var(--accent)) 35%, transparent);
+  box-shadow: 0 8px 18px rgba(30, 50, 80, 0.2);
 }
 
 /* Nodos con efecto holográfico activo */
@@ -367,3 +481,64 @@
   transform: scale(1.06);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(212, 163, 115, 0.4);
 }
+
+/* Nodos de Material (Jerarquía nivel 3) */
+.node--material {
+  width: auto;
+  min-width: 80px;
+  pointer-events: none;
+}
+.node--material .mat-chip {
+  padding: 6px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 20px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: var(--shadow-node);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.node--material .mat-chip::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Ajuste de tamaño del Núcleo para que no sea gigante */
+:root {
+  --core-size: 56px;
+  --hub-size: 52px;
+  --node-w: 112px;
+}
+
+html[data-theme="light"] .graph {
+  background: linear-gradient(180deg, #edf3fb, #e6eef8);
+}
+html[data-theme="light"] .edge--cat { opacity: .24; }
+html[data-theme="light"] .edge--tag { opacity: .16; }
+html[data-theme="light"] .node--art .node__frame {
+  border-color: color-mix(in srgb, var(--node-accent) 42%, #dce5f0);
+  box-shadow: 0 4px 12px rgba(30, 50, 90, .14);
+}
+html[data-theme="light"] .node--hub .hub {
+  border-style: dashed;
+  border-width: 1px;
+  box-shadow: none;
+}
+html[data-theme="light"] .node--hub .hub__icon { display: none; }
+html[data-theme="light"] .node--hub .hub__label { font-size: 7px; padding: 0 3px; line-height: 1.05; }
+html[data-theme="light"] .node--hub .hub__count { font-size: 6px; }
+html[data-theme="light"] .node--core .core {
+  border-style: dashed;
+  border-width: 1px;
+  box-shadow: none;
+}
+html[data-theme="light"] .node--core .core__label { font-size: 8px; }
+html[data-theme="light"] .node--core .core__sub { font-size: 6px; }

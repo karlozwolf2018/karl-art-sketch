@@ -1,0 +1,7 @@
+node_modules/
+js/app.min.js
+css/app.min.css
+Dockerfile
+docker-compose.yml
+levantar localhost.md
+.DS_Store

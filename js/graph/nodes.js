@@ -28,6 +28,65 @@
     return art.tagLabels && art.tagLabels.length ? art.tagLabels : (node.tags || []);
   }
 
+  /** Construye texto de técnica y materiales para mostrar en la tarjeta. */
+  function buildTechMaterials(art) {
+    var techText = art.technique || '';
+    if (art.year) {
+      techText = techText + ' · ' + art.year;
+    }
+    var materialsText = art.materials || '';
+    if (materialsText) {
+      techText = techText + ' · ' + materialsText;
+    }
+    return techText;
+  }
+
+  /** Construye lista de materiales visuales tipo nodo para mostrar ocultos y desplegables. */
+  function buildMaterialsList(art) {
+    var materials = art.materials || '';
+    if (!materials) {
+      var div = dom.el('div', { class: 'node__materials-list' });
+      return div;
+    }
+    var materialItems = materials.split(',').map(function(m) { return m.trim(); }).filter(function(m) { return m; });
+    if (materialItems.length === 0) {
+      var div = dom.el('div', { class: 'node__materials-list' });
+      return div;
+    }
+    
+    var container = dom.el('div', { class: 'node__materials-container' });
+    var toggleBtn = dom.el('button', { 
+      class: 'node__materials-toggle', 
+      type: 'button',
+      text: 'Ver materiales ▼',
+      attrs: { 'aria-expanded': 'false' }
+    });
+    container.appendChild(toggleBtn);
+    
+    var materialsContent = dom.el('div', { class: 'node__materials-content' });
+    materialsContent.style.display = 'none';
+    
+    materialItems.forEach(function(mat, idx) {
+      var item = dom.el('div', { class: 'node__material-node' }, [
+        dom.el('span', { class: 'node__material-node-dot' }),
+        dom.el('span', { class: 'node__material-node-text', text: mat })
+      ]);
+      materialsContent.appendChild(item);
+    });
+    
+    container.appendChild(materialsContent);
+    
+    toggleBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var isExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+      toggleBtn.setAttribute('aria-expanded', !isExpanded);
+      materialsContent.style.display = isExpanded ? 'none' : 'block';
+      toggleBtn.textContent = isExpanded ? 'Ver materiales ▼' : 'Ocultar materiales ▲';
+    });
+    
+    return container;
+  }
+
   function renderTags(container, node, limit) {
     const tags = tagsOf(node);
     const max = limit || 3;
@@ -49,17 +108,17 @@
     dom.clear(this.container);
     this.map = Object.create(null);
 
-    const order = { core: 0, hub: 1, art: 2 };
+    const order = { core: 0, hub: 1, art: 2, material: 3 };
     nodes.slice().sort(function (a, b) { return order[a.type] - order[b.type]; }).forEach(function (node) {
       const el = node.type === 'core'
         ? self.buildCore(node)
-        : (node.type === 'hub' ? self.buildHub(node) : self.buildArt(node, handlers));
+        : (node.type === 'hub' ? self.buildHub(node) : (node.type === 'material' ? self.buildMaterial(node) : self.buildArt(node, handlers)));
 
       el.dataset.id = node.id;
       el.dataset.type = node.type;
       el.style.setProperty('--node-accent', node.color);
       el.style.setProperty('--cat-color', node.color);
-      el.style.zIndex = node.type === 'core' ? 5 : (node.type === 'hub' ? 4 : 3);
+      el.style.zIndex = node.type === 'core' ? 5 : (node.type === 'hub' ? 4 : (node.type === 'art' ? 3 : 2));
 
       self.container.appendChild(el);
       self.map[node.id] = { node: node, el: el };
@@ -68,6 +127,14 @@
     });
 
     this.updatePositions();
+  };
+
+  NodeLayer.prototype.buildMaterial = function (node) {
+    return dom.el('article', { class: 'node node--material' }, [
+      dom.el('div', { class: 'mat-chip' }, [
+        dom.el('span', { text: node.label })
+      ])
+    ]);
   };
 
   NodeLayer.prototype.buildArt = function (node, handlers) {
@@ -84,11 +151,39 @@
         'aria-label': t('node.openAria', { title: art.title || node.label })
       },
       on: handlers ? {
+        click: function (evt) {
+          if (self.suppressClick) return;
+          
+          // Expandir materiales en el grafo
+          if (window.app && window.app.graph) {
+            window.app.graph.expandedLevel = 3;
+            window.app.graph.expandedArtIds[node.id] = true;
+            window.app.graph.applyVisibility();
+            window.app.graph.layout.reheat(0.4);
+          }
+
+          handlers.onSelect(node, evt);
+          
+          // Abrir la ficha de la obra
+          if (CYBER.bus && CYBER.EVENTS && CYBER.EVENTS.ARTWORK_REQUEST) {
+            CYBER.bus.emit(CYBER.EVENTS.ARTWORK_REQUEST, { 
+              id: node.id, 
+              origin: 'graph-node' 
+            });
+          }
+        },
         dblclick: function (evt) { handlers.onFocus(node, evt); },
         keydown: function (evt) {
           if (evt.key === 'Enter' || evt.key === ' ') {
             evt.preventDefault();
             handlers.onSelect(node, evt);
+            // Abrir la ficha de la obra al pulsar Enter/Space
+            if (CYBER.bus && CYBER.EVENTS && CYBER.EVENTS.ARTWORK_REQUEST) {
+              CYBER.bus.emit(CYBER.EVENTS.ARTWORK_REQUEST, { 
+                id: node.id, 
+                origin: 'graph-node' 
+              });
+            }
           }
         }
       } : null
@@ -133,12 +228,24 @@
       thumbBox.appendChild(holoBadge);
     }
 
+    // Forzar la creación de la imagen con visibilidad garantizada
     if (art.imageUrl) {
       const img = dom.el('img', {
         class: 'node__img',
         src: art.imageUrl,
         alt: art.title || node.label,
-        loading: 'lazy'
+        attrs: {
+          loading: 'lazy',
+          decoding: 'async'
+        },
+        style: {
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          display: 'block',
+          opacity: '1',
+          visibility: 'visible'
+        }
       });
       img.onerror = function () {
         img.remove();
@@ -182,8 +289,9 @@
       thumbBox,
       dom.el('div', { class: 'node__meta' }, [
         dom.el('h3', { class: 'node__title', text: art.title || node.label }),
-        dom.el('p', { class: 'node__tech', text: (art.technique || '') + (art.year ? ' · ' + art.year : '') }),
-        tagBox
+        dom.el('p', { class: 'node__tech', text: buildTechMaterials(art) }),
+        tagBox,
+        buildMaterialsList(art)
       ])
     ];
 
@@ -298,7 +406,7 @@
         const fav = el.querySelector('.node__fav');
 
         if (title) title.textContent = art.title || node.label;
-        if (tech) tech.textContent = (art.technique || '') + ' · ' + (art.year || '');
+        if (tech) tech.textContent = buildTechMaterials(art);
         if (tags) renderTags(tags, node, 3);
         if (fav) {
           fav.setAttribute('aria-label', t('node.favoriteAria'));

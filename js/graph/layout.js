@@ -9,65 +9,81 @@
   const TAU = M.TAU;
 
   /**
-   * Reparte los nodos: núcleo al centro, hubs en anillo, obras alrededor
-   * de su técnica.
+   * Coloca nodos en un layout de "Cúmulos":
+   * Archivo en el centro, Hubs en un anillo interno, Cartas agrupadas cerca de sus Hubs.
    */
-  function place(nodes, cfg) {
-    const core = nodes.find(function (n) { return n.type === 'core'; });
-    const hubs = nodes.filter(function (n) { return n.type === 'hub'; });
-    const arts = nodes.filter(function (n) { return n.type === 'art'; });
-    const hubRadius = cfg.hubRadius || 430;
-    const spread = cfg.artSpread || 168;
+  function place(nodes, cfg, layoutScale) {
+    const core = nodes.find(n => n.type === 'core');
+    const hubs = nodes.filter(n => n.type === 'hub');
+    const arts = nodes.filter(n => n.type === 'art');
+    const matNodes = nodes.filter(n => n.type === 'material');
+
+    const hubRadius = cfg.hubRadius || 170;
+    const artSpread = cfg.artSpread || 85;
+    const scaleX = layoutScale ? layoutScale.x : 1;
+    const scaleY = layoutScale ? layoutScale.y : 1;
 
     if (core) { core.x = 0; core.y = 0; core.vx = 0; core.vy = 0; }
 
-    hubs.forEach(function (hub, index) {
-      const angle = (index / Math.max(1, hubs.length)) * TAU - Math.PI / 2;
-      hub.x = Math.cos(angle) * hubRadius;
-      hub.y = Math.sin(angle) * hubRadius;
-      hub.vx = 0;
-      hub.vy = 0;
-      hub.homeAngle = angle;
+    // Posicionar Hubs en círculo
+    hubs.forEach((hub, index) => {
+      const angle = (index / hubs.length) * TAU - Math.PI / 2;
+      hub.x = Math.cos(angle) * hubRadius * scaleX;
+      hub.y = Math.sin(angle) * hubRadius * scaleY;
+      hub.fixed = false;
     });
 
-    const byHub = Object.create(null);
-    arts.forEach(function (art) {
+    // Posicionar Obras cerca de su Hub
+    const byHub = {};
+    arts.forEach(art => {
       const key = CYBER.GraphModel.hubId(art.category);
-      (byHub[key] = byHub[key] || []).push(art);
+      if (!byHub[key]) byHub[key] = [];
+      byHub[key].push(art);
     });
 
-    Object.keys(byHub).forEach(function (key) {
-      const hub = nodes.find(function (n) { return n.id === key; });
-      const list = byHub[key];
+    Object.keys(byHub).forEach(key => {
+      const hub = nodes.find(n => n.id === key);
       if (!hub) return;
-      /* las obras se abren en abanico hacia fuera del centro */
-      const base = Math.atan2(hub.y, hub.x);
-      const arc = Math.min(Math.PI * 1.15, 0.5 + list.length * 0.36);
-
-      list.forEach(function (art, index) {
-        const t = list.length === 1 ? 0.5 : index / (list.length - 1);
-        const angle = base + (t - 0.5) * arc;
-        const ring = spread * (1.05 + (index % 3) * 0.42);
-        art.x = hub.x + Math.cos(angle) * ring;
-        art.y = hub.y + Math.sin(angle) * ring;
-        art.vx = 0;
-        art.vy = 0;
+      const list = byHub[key];
+      
+      list.forEach((art, index) => {
+        const angle = index * 2.399963229728653;
+        const radius = Math.sqrt((index + 0.5) / list.length) * artSpread;
+        art.x = hub.x + Math.cos(angle) * radius * scaleX;
+        art.y = hub.y + Math.sin(angle) * radius * scaleY;
       });
+    });
+
+    // Materiales muy cerca de su carta padre
+    matNodes.forEach(mat => {
+      const parentId = mat.id.split(':')[1];
+      const parent = nodes.find(n => n.id === parentId);
+      if (parent) {
+        mat.x = parent.x + 80; // offset pequeño
+        mat.y = parent.y + 80;
+      }
     });
   }
 
   /** Reinicia las posiciones con un desorden controlado (botón LAYOUT). */
-  function shuffle(nodes, cfg) {
+  function shuffle(nodes, cfg, layoutScale) {
     const rnd = M.rng(Date.now() % 100000);
-    place(nodes, cfg);
+    place(nodes, cfg, layoutScale);
+    const hubByCategory = Object.create(null);
     nodes.forEach(function (node) {
-      if (node.type === 'core') return;
+      if (node.type === 'hub') hubByCategory[node.category] = node;
+    });
+    const spread = cfg.artSpread || 85;
+    const scaleX = layoutScale ? layoutScale.x : 1;
+    const scaleY = layoutScale ? layoutScale.y : 1;
+    nodes.forEach(function (node) {
+      if (node.type !== 'art') return;
+      const hub = hubByCategory[node.category];
+      if (!hub) return;
       const angle = rnd() * TAU;
-      const radius = node.type === 'hub'
-        ? (cfg.hubRadius || 430) * (0.7 + rnd() * 0.6)
-        : (cfg.artSpread || 168) * (0.8 + rnd() * 1.9);
-      node.x = Math.cos(angle) * radius;
-      node.y = Math.sin(angle) * radius;
+      const radius = Math.sqrt(rnd()) * spread;
+      node.x = hub.x + Math.cos(angle) * radius * scaleX;
+      node.y = hub.y + Math.sin(angle) * radius * scaleY;
       node.vx = (rnd() - 0.5) * 6;
       node.vy = (rnd() - 0.5) * 6;
       node.fixed = false;
@@ -78,19 +94,21 @@
    * Crea el motor de física.
    * @returns {{tick:Function, energy:Function, reheat:Function, shuffle:Function, place:Function}}
    */
-  function create(nodes, edges, config) {
+  function create(nodes, edges, config, aspectRatio) {
     const cfg = Object.assign({
-      repulsion: 46000,
-      springLength: 196,
-      springStrength: 0.021,
-      tagStrength: 0.012,
+      repulsion: 12000,
+      springLength: 110,
+      springStrength: 0.035,
+      tagStrength: 0.006,
       gravity: 0.0026,
       damping: 0.86,
-      maxVelocity: 26,
-      hubRadius: 430,
-      artSpread: 168
+      maxVelocity: 18,
+      hubRadius: 170,
+      artSpread: 85
     }, (config && config.graph) || {});
 
+    const aspectScale = Math.sqrt(M.clamp(aspectRatio || 1, 0.5, 2));
+    const layoutScale = { x: aspectScale * 1.25, y: 1 / aspectScale };
     let energy = 0;
     let heat = 1;
     let count = nodes.length;
@@ -98,6 +116,15 @@
     let fy = new Float64Array(count);
     let nodeIndex = Object.create(null);
     nodes.forEach(function (node, i) { nodeIndex[node.id] = i; });
+
+    function syncCoreRestLengths() {
+      edges.forEach(function (edge) {
+        if (edge.type !== 'core') return;
+        const source = nodes[nodeIndex[edge.source]];
+        const target = nodes[nodeIndex[edge.target]];
+        if (source && target) edge.restLength = Math.hypot(target.x - source.x, target.y - source.y);
+      });
+    }
 
     function computeForces() {
       if (count !== nodes.length) {
@@ -160,7 +187,7 @@
         const dy = b.y - a.y;
         const d = Math.max(1, Math.hypot(dx, dy));
         const rest = edge.type === 'core'
-          ? cfg.hubRadius * 0.92
+          ? (edge.restLength || cfg.hubRadius * 0.92)
           : (edge.type === 'tag' ? cfg.springLength * 1.35 : cfg.springLength);
         const strength = (edge.type === 'tag' ? cfg.tagStrength : cfg.springStrength) * (1 + (edge.weight - 1) * 0.3);
         const force = (d - rest) * strength;
@@ -204,10 +231,14 @@
     return {
       cfg: cfg,
 
-      place: function () { place(nodes, cfg); },
+      place: function () {
+        place(nodes, cfg, layoutScale);
+        syncCoreRestLengths();
+      },
 
       shuffle: function () {
-        shuffle(nodes, cfg);
+        shuffle(nodes, cfg, layoutScale);
+        syncCoreRestLengths();
         heat = 1;
       },
 

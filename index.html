@@ -18,7 +18,12 @@
 <!-- ===================== HOJA DE ESTILOS DE PRODUCCIÓN UNIFICADA ===================== -->
 <link rel="stylesheet" href="css/app.min.css?v=20261110-space-hover">
     <link rel="stylesheet" href="css/responsive.css">
+    <!-- Tarjetas de nodo: width, thumb, materials -->
+    <link rel="stylesheet" href="css/node.css">
+    <link rel="stylesheet" href="css/toolbar.css">
 </head>
+<style>.toolbar { top: 0px !important; }</style>
+
 <body class="is-booting">
 
 <!-- ===================== FONDO / ATMÓSFERA ELEGANTE ===================== -->
@@ -57,10 +62,26 @@
 
     <!-- Menú de navegación móvil -->
     <nav class="navtabs-mobile" id="mobile-nav" aria-label="Navegación móvil">
-      <button class="navtabs-mobile__btn is-active" data-view="graph">G</button>
-      <button class="navtabs-mobile__btn" data-view="gallery">L</button>
-      <button class="navtabs-mobile__btn" data-view="about">I</button>
+      <button class="navtabs-mobile__btn is-active" data-view="graph"></button>
+      <button class="navtabs-mobile__btn" data-view="gallery"></button>
+      <button class="navtabs-mobile__btn" data-view="about"></button>
     </nav>
+
+    <!-- Elementos en esquina superior derecha (tema, nodos, enlaces) -->
+    <div id="topbar__corner">
+      <!-- conmutador de tema claro / oscuro -->
+      <button class="themeswitch topbar__corner-item" id="btn-theme" type="button" aria-pressed="true"
+              title="Tema claro / oscuro" aria-label="Tema actual: claro. Cambiar a oscuro"
+              data-i18n-attr="title:meta.themeTitle,aria-label:meta.themeAriaLight">
+        <span class="themeswitch__icon" aria-hidden="true">☀</span>
+      </button>
+
+      <!-- NODOS y ENLACES -->
+      <div class="topbar__stats topbar__corner-group">
+        <span class="chip chip--ghost"><b id="status-nodes">0</b> <span class="nodenum">NODOS</span></span>
+        <span class="chip chip--ghost"><b id="status-edges">0</b> <span class="edgenum">ENLACES</span></span>
+      </div>
+    </div>
 
     <div class="topbar__right">
       <div class="searchbox" role="search">
@@ -73,13 +94,6 @@
                 data-i18n-attr="aria-label:ui.search.clear">×</button>
         <span class="searchbox__count" id="search-count"></span>
       </div>
-
-      <!-- conmutador de tema claro / oscuro -->
-      <button class="themeswitch" id="btn-theme" type="button" aria-pressed="true"
-              title="Tema claro / oscuro" aria-label="Tema actual: claro. Cambiar a oscuro"
-              data-i18n-attr="title:meta.themeTitle,aria-label:meta.themeAriaLight">
-        <span class="themeswitch__icon" aria-hidden="true">☀</span>
-      </button>
 
       <!-- badge indicador de modo administrador -->
       <button class="admin-badge" id="btn-admin-badge" type="button"
@@ -174,10 +188,6 @@
         <span class="addworkbtn__label" data-i18n="meta.addWork">+ NUEVA OBRA</span>
       </button>
 
-      <div class="topbar__stats">
-        <span class="chip chip--ghost"><b id="status-nodes">0</b> <span data-i18n="ui.stats.nodes">nodos</span></span>
-        <span class="chip chip--ghost"><b id="status-edges">0</b> <span data-i18n="ui.stats.edges">enlaces</span></span>
-      </div>
     </div>
   </header>
 
@@ -381,8 +391,6 @@
 
   <!-- ---------- BARRA DE ESTADO ---------- -->
   <footer class="statusbar" role="contentinfo">
-    <span class="statusbar__seg"><b data-i18n="ui.statusbar.nodes">NODOS</b> <span id="status-nodes">0</span></span>
-    <span class="statusbar__seg"><b data-i18n="ui.statusbar.edges">ENLACES</b> <span id="status-edges">0</span></span>
     <span class="statusbar__seg"><b data-i18n="ui.statusbar.zoom">ZOOM</b> <span id="status-zoom">100%</span></span>
     <span class="statusbar__seg"><b data-i18n="ui.statusbar.fps">FPS</b> <span id="status-fps">–</span></span>
     <span class="statusbar__seg"><b data-i18n="ui.statusbar.source">FUENTE</b> <span id="status-source">cargando…</span></span>
@@ -408,8 +416,12 @@
     </div>
     <h1 class="loader__title">KARL<span>_</span>SKETCH</h1>
     <p class="loader__sub" data-i18n="ui.loader.sub">montando grafo de bocetos…</p>
-    <pre class="loader__lines" id="loader-lines"></pre>
-    <div class="loader__barwrap"><div class="loader__bar" id="loader-bar"></div></div>
+    <pre class="loader__lines" id="loader-lines" aria-live="polite"></pre>
+    <div class="loader__barwrap" id="loader-progress" role="progressbar" aria-label="Progreso de carga"
+         data-i18n-attr="aria-label:ui.loader.progress"
+         aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="loader__bar" id="loader-bar"></div>
+    </div>
     <div class="loader__meta">
       <span id="loader-pct">0%</span>
       <button class="btn btn--ghost btn--tiny" id="loader-skip" data-i18n="ui.loader.skip">SALTAR INTRO</button>
@@ -460,6 +472,57 @@
 .about__foot .about__code{margin-top:12px !important;font-family:var(--font-mono)!important;font-size:12px!important;opacity:.8!important}
 .modal-root{padding:32px 24px 56px !important}
 .modal{max-height:92vh !important}
+</style>
+
+<style>
+/* ==================== TOP-RIGHT CORNER POSITIONING ==================== */
+#topbar__corner {
+  position: absolute !important;
+  top: 16px !important;
+  right: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  z-index: 30 !important;
+}
+.themeswitch.topbar__corner-item {
+  position: static !important;
+  width: 34px !important;
+  height: 34px !important;
+  padding: 0 !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 99px !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+  color: var(--text-mute) !important;
+  margin: 0 !important;
+}
+.themeswitch.topbar__corner-item:hover {
+  color: var(--accent) !important;
+  border-color: var(--line-strong) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  box-shadow: 0 0 12px rgba(212, 163, 115, 0.25) !important;
+}
+.themeswitch.topbar__corner-item .themeswitch__icon {
+  font-size: 14px !important;
+}
+.topbar__stats.topbar__corner-group {
+  position: static !important;
+  display: flex !important;
+  gap: 8px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  z-index: auto !important;
+}
+.topbar__stats.topbar__corner-group .chip {
+  font-size: 12px !important;
+  padding: 2px 10px !important;
+}
+.topbar__stats.topbar__corner-group .nodenum,
+.topbar__stats.topbar__corner-group .edgenum {
+  text-transform: uppercase !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em !important;
+}
 </style>
 
 <noscript>

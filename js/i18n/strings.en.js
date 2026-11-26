@@ -104,6 +104,7 @@
       loader: {
         aria: 'Starting up',
         sub: 'assembling the sketch graph…',
+        progress: 'Loading progress',
         skip: 'SKIP INTRO'
       },
       views: {

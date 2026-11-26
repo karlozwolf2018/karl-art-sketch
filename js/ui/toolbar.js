@@ -1,12 +1,10 @@
 /* ============================================================
-   ui/toolbar.js — Herramientas del lienzo (reemplaza al que faltaba)
-   Expone: CYBER.Toolbar
+   ui/toolbar.js — Herramientas flotantes (Arrastrable/Desplegable)
    ============================================================ */
 (function (CYBER) {
   'use strict';
 
   const dom = CYBER.dom;
-  const bus = CYBER.bus;
 
   function t(key, vars) {
     return CYBER.I18n ? CYBER.I18n.t(key, vars) : key;
@@ -15,63 +13,23 @@
   function Toolbar(rootId) {
     this.root = document.getElementById(rootId || 'toolbar');
     this.handlers = {};
-    this.crt = true;
     this.physics = true;
-    this.groupCount = 0;
+    this.isDragging = false;
+    this.dragOffset = { x: 0, y: 0 };
+    this.wasDragged = false;
   }
 
   Toolbar.prototype.init = function (handlers) {
     if (!this.root) return this;
     this.handlers = handlers || {};
-    const self = this;
-
-    function bind(id, event, handler) {
-      const element = document.getElementById(id);
-      if (element && !element.dataset.toolbarBound) {
-        element.dataset.toolbarBound = 'true';
-        element.addEventListener(event, handler);
-      }
-    }
-
-    bind('btn-zoom-out', 'click', function () {
-      if (self.handlers.onZoom) self.handlers.onZoom(1 / 1.2);
-    });
-    bind('btn-zoom-in', 'click', function () {
-      if (self.handlers.onZoom) self.handlers.onZoom(1.2);
-    });
-    bind('btn-fit', 'click', function () {
-      if (self.handlers.onFit) self.handlers.onFit();
-    });
-    bind('btn-layout', 'click', function () {
-      if (self.handlers.onLayout) self.handlers.onLayout();
-    });
-    bind('btn-focus-core', 'click', function () {
-      if (self.handlers.onCore) self.handlers.onCore();
-    });
-    bind('btn-physics', 'click', function () {
-      self.physics = !self.physics;
-      self.setPhysics(self.physics);
-      if (self.handlers.onPhysics) self.handlers.onPhysics(self.physics);
-    });
-    bind('btn-export', 'click', function () {
-      if (self.handlers.onExport) self.handlers.onExport();
-    });
-    bind('btn-fullscreen', 'click', function () {
-      if (!document.fullscreenElement) {
-        const request = document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen;
-        if (request) request.call(document.documentElement);
-      } else if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
-    });
-
+    this.build();
+    this.enableDrag();
     return this;
   };
 
   Toolbar.prototype.setView = function (view) {
     if (!this.root) return this;
-    const visible = view === 'graph';
-    this.root.hidden = !visible;
+    this.root.hidden = view !== 'graph';
     return this;
   };
 
@@ -80,219 +38,130 @@
     this.root.classList.remove('is-flashing');
     void this.root.offsetWidth;
     this.root.classList.add('is-flashing');
-    window.setTimeout(function () {
+    window.setTimeout(() => {
       this.root && this.root.classList.remove('is-flashing');
-    }.bind(this), 180);
+    }, 180);
     return this;
   };
 
-  /** Construye la barra de herramientas */
   Toolbar.prototype.build = function () {
     if (!this.root) return this;
-
     const self = this;
-
     this.root.innerHTML = '';
+    this.root.className = 'toolbar';
 
-    // Botón: Ajustar
-    const btnFit = dom.el('button', {
-      class: 'toolbtn',
+    // Botón principal
+    const toggleBtn = dom.el('button', {
+      class: 'toolbtn toolbtn--main',
+      id: 'btn-toolbar-toggle',
       type: 'button',
-      text: 'F',
-      title: t('ui.tools.fitTitle'),
-      attrs: { 'aria-label': t('ui.tools.fit') },
-      on: {
-        click: function () { if (self.handlers.onFit) self.handlers.onFit(); }
+      title: 'Herramientas (Arrastrar o Clic)'
+    }, [dom.el('span', { text: '⚙' })]);
+
+    toggleBtn.addEventListener('click', (evt) => {
+      if (self.wasDragged) {
+        self.wasDragged = false;
+        return;
       }
-    }, [
-      dom.el('svg', {
-        viewBox: '0 0 24 24',
-        width: '14',
-        height: '14',
-        fill: 'none',
-        stroke: 'currentColor',
-        'stroke-width': '2',
-        'stroke-linecap': 'round',
-        'stroke-linejoin': 'round',
-        'aria-hidden': 'true'
-      }, [
-        dom.el('path', { d: 'M4 6h16' }),
-        dom.el('path', { d: 'M4 18h16' }),
-        dom.el('circle', { cx: '12', cy: '12', r: '10' })
-      ])
-    ]);
+      evt.stopPropagation();
+      self.root.classList.toggle('is-expanded');
+    });
 
-    // Botón: Layout/Reorganizar
-    const btnLayout = dom.el('button', {
-      class: 'toolbtn',
-      type: 'button',
-      text: 'R',
-      title: t('ui.tools.layoutTitle'),
-      attrs: { 'aria-label': t('ui.tools.layout') },
-      on: {
-        click: function () { if (self.handlers.onLayout) self.handlers.onLayout(); }
-      }
-    }, [
-      dom.el('svg', {
-        viewBox: '0 0 24 24',
-        width: '14',
-        height: '14',
-        fill: 'none',
-        stroke: 'currentColor',
-        'stroke-width': '2',
-        'stroke-linecap': 'round',
-        'stroke-linejoin': 'round',
-        'aria-hidden': 'true'
-      }, [
-        dom.el('path', { d: 'M6 9l6-6 6 6' }),
-        dom.el('path', { d: 'M6 15l6 6 6-6' })
-      ])
-    ]);
+    this.root.appendChild(toggleBtn);
 
-    // Botón: Núcleo
-    const btnCore = dom.el('button', {
-      class: 'toolbtn',
-      type: 'button',
-      text: 'C',
-      title: t('ui.tools.coreTitle'),
-      attrs: { 'aria-label': t('ui.tools.core') },
-      on: {
-        click: function () { if (self.handlers.onCore) self.handlers.onCore(); }
-      }
-    }, [
-      dom.el('svg', {
-        viewBox: '0 0 24 24',
-        width: '14',
-        height: '14',
-        fill: 'none',
-        stroke: 'currentColor',
-        'stroke-width': '2',
-        'stroke-linecap': 'round',
-        'stroke-linejoin': 'round',
-        'aria-hidden': 'true'
-      }, [
-        dom.el('circle', { cx: '12', cy: '12', r: '10' }),
-        dom.el('circle', { cx: '12', cy: '10', r: '2' })
-      ])
-    ]);
+    const buttons = [
+      { id: 'btn-fit', icon: '⤢', title: t('ui.tools.fit') },
+      { id: 'btn-layout', icon: '⟳', title: t('ui.tools.layout') },
+      { id: 'btn-focus-core', icon: '◎', title: t('ui.tools.core') },
+      { id: 'btn-physics', icon: '⚛', title: t('ui.tools.physics') },
+      { id: 'btn-export', icon: '⤓', title: t('ui.tools.export') },
+      { id: 'btn-fullscreen', icon: '⛶', title: t('ui.tools.fullscreen') }
+    ];
 
-    // Botón: Física
-    const btnPhysics = dom.el('button', {
-      class: 'toolbtn',
-      type: 'button',
-      text: 'P',
-      title: t('ui.tools.physicsTitle'),
-      attrs: { 'aria-label': t('ui.tools.physics') },
-      on: {
-        click: function () { if (self.handlers.onPhysics) self.handlers.onPhysics(); }
-      }
-    }, [
-      dom.el('svg', {
-        viewBox: '0 0 24 24',
-        width: '14',
-        height: '14',
-        fill: 'none',
-        stroke: 'currentColor',
-        'stroke-width': '2',
-        'stroke-linecap': 'round',
-        'stroke-linejoin': 'round',
-        'aria-hidden': 'true'
-      }, [
-        dom.el('path', { d: 'M12 2a10 10 0 1 0 10 10' }),
-        dom.el('circle', { cx: '12', cy: '10', r: '2' })
-      ])
-    ]);
-
-    // Botón: CRT
-    const btnCrt = dom.el('button', {
-      class: 'toolbtn',
-      type: 'button',
-      text: 'T',
-      title: t('ui.tools.crtTitle'),
-      attrs: { 'aria-label': t('ui.tools.crt') },
-      on: {
-        click: function () { if (self.handlers.onCrt) self.handlers.onCrt(); }
-      }
-    }, [
-      dom.el('svg', {
-        viewBox: '0 0 24 24',
-        width: '14',
-        height: '14',
-        fill: 'none',
-        stroke: 'currentColor',
-        'stroke-width': '2',
-        'stroke-linecap': 'round',
-        'stroke-linejoin': 'round',
-        'aria-hidden': 'true'
-      }, [
-        dom.el('rect', { x: '2', y: '3', width: '20', height: '14', rx: '2', ry: '2' }),
-        dom.el('line', { x1: '2', y1: '19', x2: '22', y2: '19' }),
-        dom.el('circle', { cx: '12', cy: '9', r: '2' })
-      ])
-    ]);
-
-    // Botón: Exportar
-    const btnExport = dom.el('button', {
-      class: 'toolbtn',
-      type: 'button',
-      text: 'E',
-      title: t('ui.tools.exportTitle'),
-      attrs: { 'aria-label': t('ui.tools.export') },
-      on: {
-        click: function () { if (self.handlers.onExport) self.handlers.onExport(); }
-      }
-    }, [
-      dom.el('svg', {
-        viewBox: '0 0 24 24',
-        width: '14',
-        height: '14',
-        fill: 'none',
-        stroke: 'currentColor',
-        'stroke-width': '2',
-        'stroke-linecap': 'round',
-        'stroke-linejoin': 'round',
-        'aria-hidden': 'true'
-      }, [
-        dom.el('path', { d: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' }),
-        dom.el('polyline', { points: '7,10 12,15 17,10' }),
-        dom.el('line', { x1: '12', y1: '15', x2: '12', y2: '3' })
-      ])
-    ]);
-
-    // Contenedor de grupos
-    this.groups = [];
-
-    // Añadir botones al root
-    this.root.appendChild(btnFit);
-    this.root.appendChild(btnLayout);
-    this.root.appendChild(btnCore);
-    this.root.appendChild(btnPhysics);
-    this.root.appendChild(btnCrt);
-    this.root.appendChild(btnExport);
-
+    buttons.forEach((btn, index) => {
+      // TODOS los botones se marcan como 'toolbtn--sub' para que se oculten inicialmente
+      const el = dom.el('button', {
+        class: 'toolbtn toolbtn--sub',
+        id: btn.id,
+        type: 'button',
+        title: btn.title,
+        on: { click: (evt) => {
+          evt.stopPropagation();
+          if (btn.id === 'btn-fit' && self.handlers.onFit) self.handlers.onFit();
+          if (btn.id === 'btn-layout' && self.handlers.onLayout) self.handlers.onLayout();
+          if (btn.id === 'btn-focus-core' && self.handlers.onCore) self.handlers.onCore();
+          if (btn.id === 'btn-physics') {
+            self.physics = !self.physics;
+            self.setPhysics(self.physics);
+            if (self.handlers.onPhysics) self.handlers.onPhysics(self.physics);
+          }
+          if (btn.id === 'btn-export' && self.handlers.onExport) self.handlers.onExport();
+          if (btn.id === 'btn-fullscreen') {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else document.exitFullscreen();
+          }
+        }}
+      }, [dom.el('span', { text: btn.icon })]);
+      
+      // Todos los botones ahora se añaden después del botón de toggle, 
+      // para que todos se desplieguen solo al hacer clic.
+      this.root.appendChild(el);
+    });
     return this;
   };
 
-  /** Alterna el estado de física */
+  Toolbar.prototype.enableDrag = function () {
+    const self = this;
+    const root = this.root;
+    let startX = 0, startY = 0;
+
+    const onPointerDown = (evt) => {
+      if (evt.target.closest('.toolbtn--sub')) return;
+      self.isDragging = true;
+      self.wasDragged = false;
+      startX = evt.clientX;
+      startY = evt.clientY;
+      const rect = root.getBoundingClientRect();
+      self.dragOffset.x = evt.clientX - rect.left;
+      self.dragOffset.y = evt.clientY - rect.top;
+      root.style.transition = 'none';
+      window.addEventListener('pointermove', onPointerMove);
+      window.addEventListener('pointerup', onPointerUp);
+    };
+
+    const onPointerMove = (evt) => {
+      if (!self.isDragging) return;
+      const dx = evt.clientX - startX;
+      const dy = evt.clientY - startY;
+      if (Math.hypot(dx, dy) > 5) self.wasDragged = true;
+      let x = evt.clientX - self.dragOffset.x;
+      let y = evt.clientY - self.dragOffset.y;
+      x = Math.max(10, Math.min(x, window.innerWidth - root.offsetWidth - 10));
+      y = Math.max(10, Math.min(y, window.innerHeight - root.offsetHeight - 10));
+      root.style.left = x + 'px';
+      root.style.top = y + 'px';
+      root.style.right = 'auto';
+    };
+
+    const onPointerUp = () => {
+      self.isDragging = false;
+      root.style.transition = '';
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+    };
+
+    root.addEventListener('pointerdown', onPointerDown);
+  };
+
   Toolbar.prototype.setPhysics = function (on) {
     if (!this.root) return;
     this.physics = !!on;
-    const btn = this.root.querySelector('.toolbtn');
+    const btn = this.root.querySelector('#btn-physics');
     if (btn) btn.classList.toggle('is-on', this.physics);
   };
 
-  /** Alterna el efecto CRT */
-  Toolbar.prototype.setCrt = function (enabled) {
-    if (!this.root) return;
-    this.crt = !!enabled;
-  };
-
-  /** Establece el zoom actual */
-  Toolbar.prototype.setZoom = function (zoom) {
-    // Puede usarse para mostrar el zoom en un display si se añade
-  };
-
-  /** Manejadores de eventos */
+  Toolbar.prototype.setCrt = function () {};
+  Toolbar.prototype.setZoom = function () {};
   Toolbar.prototype.on = function (event, handler) {
     this.handlers[event] = handler;
     return this;

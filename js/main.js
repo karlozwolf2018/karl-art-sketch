@@ -695,19 +695,28 @@
     CYBER.Toast.init();
     CYBER.I18n.applyDom();
 
-    /* --- arranque instantáneo sin esperas artificiales --- */
+    /* --- pantalla de inicio hasta que datos, imágenes e interfaz estén listos --- */
     const bootConfig = CYBER.FallbackData.config;
     const loaderLines = CYBER.I18n.locale() === 'en'
       ? (bootConfig.ui.bootLines_en || bootConfig.ui.bootLines)
       : bootConfig.ui.bootLines;
 
-    const loader = CYBER.Loader.run({ lines: loaderLines, stepDelay: 0, minDuration: 0 });
-    document.body.classList.remove('is-booting');
+    let markAppReady;
+    const appReady = new Promise(function (resolve) { markAppReady = resolve; });
+    const loader = CYBER.Loader.run({
+      lines: loaderLines,
+      stepDelay: 90,
+      minDuration: 500,
+      waitFor: appReady
+    });
 
     CYBER.store.patch({ loading: true });
 
-    /* --- carga de datos --- */
+    /* --- carga de datos y precarga de miniaturas --- */
     CYBER.DataService.load().then(function (data) {
+      const imageUrls = data.artworks.map(function (artwork) { return artwork.imageUrl; });
+      return CYBER.Loader.preloadImages(imageUrls).then(function () { return data; });
+    }).then(function (data) {
       app.baseRaw = data.raw || {
         config: CYBER.FallbackData.config,
         categories: CYBER.FallbackData.categories,
@@ -928,6 +937,7 @@
       /* reencuadre final cuando el layout se ha asentado */
       window.setTimeout(function () { graph.fit(); }, 900);
 
+      markAppReady();
       return loader;
     }).then(function () {
       /* --- fin del arranque --- */
@@ -944,6 +954,7 @@
       }
     }).catch(function (err) {
       console.error('[app] fallo crítico en el arranque', err);
+      markAppReady();
       const root = document.getElementById('toast-root');
       if (root) {
         root.appendChild(dom.el('div', { class: 'toast toast--error' }, [
@@ -955,6 +966,7 @@
         ]));
       }
       document.body.classList.remove('is-booting');
+      document.body.setAttribute('aria-busy', 'false');
       const loaderEl = document.getElementById('loader');
       if (loaderEl) loaderEl.classList.add('is-done');
     });

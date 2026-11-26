@@ -520,7 +520,7 @@
 /* ==================== PANEL BACKDROP MÓVIL ==================== */
 @media (max-width: 860px) {
   .panel-backdrop {
-    display: block;
+    display: none;
     top: var(--topbar-h);
     bottom: var(--statusbar-h);
     left: 0;

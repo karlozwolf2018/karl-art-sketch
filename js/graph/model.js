@@ -14,9 +14,9 @@
 
   /** Radio visual usado por la física (los nodos de obra son tarjetas). */
   function radiusFor(type) {
-    if (type === 'core') return 74;
-    if (type === 'hub') return 60;
-    return 104;
+    if (type === 'core') return 30;
+    if (type === 'hub') return 30;
+    return 68;
   }
 
   function hubId(categoryId) { return 'hub:' + categoryId; }

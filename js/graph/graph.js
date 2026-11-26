@@ -52,6 +52,11 @@
     this.pointers = new Map();
     this.gesture = null;
     this.cleanup = [];
+    
+    /* ---------- Navegación jerárquica ---------- */
+    this.expandedLevel = 0; // 0 = solo núcleo, 1 = núcleo + hubs, 2 = todo (artes), 3 = materiales
+    this.expandedHubIds = Object.create(null); // hubs expandidos temporalmente
+    this.expandedArtIds = Object.create(null); // artes expandidas (para mostrar materiales)
   }
 
   /* ------------------------------------------------------------
@@ -69,7 +74,9 @@
     this.camera.minZoom = graphCfg.minZoom || 0.26;
     this.camera.maxZoom = graphCfg.maxZoom || 2.6;
 
-    this.layout = CYBER.Layout.create(this.model.nodes, this.model.edges, data.config);
+    const stageRect = this.refs.stage && this.refs.stage.getBoundingClientRect();
+    const aspectRatio = stageRect && stageRect.height ? stageRect.width / stageRect.height : 1;
+    this.layout = CYBER.Layout.create(this.model.nodes, this.model.edges, data.config, aspectRatio);
     this.layout.place();
 
     this.edgeLayer.opts.packets = graphCfg.packets !== false;
@@ -85,18 +92,79 @@
 
     this.nodeLayer.setFavorites(function (id) { return CYBER.Favorites.has(id); });
     this.buildLegend();
+    
+    /* ---------- Visibilidad inicial: núcleos, técnicas y miniaturas ---------- */
+    this.expandedLevel = 2;
+    this.expandedHubIds = Object.create(null);
+    this.expandedArtIds = Object.create(null);
+    this.visibleIds = Object.create(null);
+
+    // Mostrar todas las obras al entrar en el modo GRAFO.
+    this.model.nodes.forEach(function (node) {
+      if (node.type === 'art') node.visible = true;
+      if (node.type === 'hub') this.expandedHubIds[node.id] = true;
+    }, this);
+
+    this.applyVisibility();
+    
     this.fit(true);
     return this.model;
   };
 
-  /** Añade interacción a hubs y núcleo (las obras ya la traen en su nodo). */
+  /** Añade interacción a hubs y núcleo. Las obras ya tienen sus handlers en buildArt. */
   Graph.prototype.bindNode = function (node, el) {
     if (node.type === 'art') return;
     const self = this;
 
     el.addEventListener('click', function () {
       if (self.suppressClick) return;
-      self.select(node.id, { fromUser: true });
+      
+      /* ---------- Navegación jerárquica ---------- */
+      if (node.type === 'core') {
+        // Al hacer clic en el NÚCLEO (ARCHIVO): expandir todos los HUBs de TÉCNICAS
+        self.expandedLevel = 1;
+        const allHubs = self.model.nodes.filter(function(n) { return n.type === 'hub'; });
+        allHubs.forEach(function(hub) {
+          hub.visible = true;
+        });
+        self.applyVisibility();
+        self.select(node.id, { fromUser: true });
+        // Animación para mostrar la expansión
+        self.layout.reheat(0.8);
+        self.dirty = true;
+      } else if (node.type === 'hub') {
+        // Al hacer clic en un HUB de TÉCNICA: expandir las obras de esa técnica
+        self.expandedLevel = 2;
+        self.expandedHubIds[node.id] = true;
+        
+        // Mostrar todas las obras de esta categoría
+        const arts = self.model.nodes.filter(function(n) { 
+          return n.type === 'art' && n.category === node.category; 
+        });
+        arts.forEach(function(art) {
+          art.visible = true;
+        });
+        
+        self.applyVisibility();
+        self.select(node.id, { fromUser: true });
+        // Animación para mostrar la expansión
+        self.layout.reheat(0.6);
+        self.dirty = true;
+        
+        // Abrir automáticamente la ficha de la primera obra de esta técnica
+        if (arts.length > 0) {
+          const target = arts[0];
+          self.focusNode(target.id, 1.1);
+          
+          // Emitir evento para abrir la ficha de la obra
+          if (CYBER.bus && CYBER.EVENTS && CYBER.EVENTS.ARTWORK_REQUEST) {
+            CYBER.bus.emit(CYBER.EVENTS.ARTWORK_REQUEST, { 
+              id: target.artwork.id, 
+              origin: 'graph-node' 
+            });
+          }
+        }
+      }
     });
 
     el.addEventListener('keydown', function (evt) {
@@ -531,7 +599,7 @@
     const nodes = this.model.nodes.filter(function (node) {
       return !this.visibleIds || this.visibleIds[node.id];
     }, this);
-    this.camera.fit(nodes.length ? nodes : this.model.nodes, size.w, size.h, 150);
+    this.camera.fit(nodes.length ? nodes : this.model.nodes, size.w, size.h, 36);
     this.camera.animate = !immediate;
     this.applyCamera(immediate ? 0 : 520);
     return this;
@@ -590,31 +658,54 @@
         const okAvailable = !filters.onlyAvailable || art.available;
         const okQuery = !query || art.searchText.indexOf(query) > -1;
         const okGallery = !filters.gallery || art.gallery === filters.gallery;
+        
+        /* Verificar si el hub de esta categoría está expandido */
+        const hubId = 'hub:' + node.category;
+        const hubExpanded = !!this.expandedHubIds[hubId];
+        
         const ok = okCategory && okTags && okFav && okAvailable && okQuery && okGallery;
 
-        visible[node.id] = ok;
-        if (ok) {
+        /* Una obra es visible si:
+           - Pasan los filtros, o
+           - El grafo está expandido al nivel 2, o
+           - El hub de su categoría está expandido individualmente
+        */
+        visible[node.id] = (ok && this.expandedLevel >= 2) || 
+                           (ok && hubExpanded) ||
+                           (node.visible === true); // para obras marcadas manualmente
+        
+        /* Contar solo obras que pasan filtros y están visibles por jerarquía */
+        if (ok && (this.expandedLevel >= 1)) {
           count += 1;
           hubVisible[node.category] = true;
         }
       } else if (node.type === 'hub') {
-        visible[node.id] = false;
+        /* Un hub es visible si:
+           - expandedLevel >= 1 (todos los hubs mostrados), o  
+           - Tiene obras visibles por filtros, o
+           - Está en expandedHubIds (hub expandido individualmente)
+        */
+        const hubId = node.id;
+        visible[node.id] = this.expandedLevel >= 1 || 
+                           !!this.expandedHubIds[hubId] ||
+                           !!hubVisible[node.category];
       } else {
-        visible[node.id] = false;
+        /* El núcleo (y otros nodos de sistema) siempre visibles */
+        visible[node.id] = true;
       }
-    });
+    }, this);
 
-    /* hubs y núcleo se muestran según lo que quede visible */
-    Object.keys(hubVisible).forEach(function (categoryId) {
-      visible[CYBER.GraphModel.hubId(categoryId)] = true;
-    });
-    visible[this.model.coreId] = count > 0;
+    /* El núcleo siempre se muestra */
+    visible[this.model.coreId] = true;
 
     /* añade los nodos visibles por arrastre de relaciones seleccionadas */
     this.visibleIds = visible;
     this.nodeLayer.setState({ filteredIds: visible, selectedId: this.selectedId, focusId: this.focusId, relatedIds: this.relatedIds });
     this.edgeLayer.applyVisibility(visible);
-    this.toggleEmptyState(count === 0);
+    
+    /* El estado vacío solo si no hay obras en el JSON */
+    const totalArtworks = this.data && this.data.artworks ? this.data.artworks.length : 0;
+    this.toggleEmptyState(totalArtworks === 0);
 
     /* reacomoda la constelación con lo que queda */
     this.layout.reheat(0.45);
@@ -625,6 +716,90 @@
 
     bus.emit(CYBER.EVENTS.GRAPH_STATS, { visible: count, zoom: this.camera.k, fps: this.fps });
     return count;
+  };
+
+  /**
+   * Aplica la visibilidad jerárquica a los nodos.
+   * - expandedLevel 0: solo núcleo visible
+   * - expandedLevel 1: núcleo + todos los HUBs de TÉCNICAS
+   * - expandedLevel 2: núcleo, HUBs y Obras (Miniaturas)
+   */
+  Graph.prototype.applyVisibility = function () {
+    const visible = Object.create(null);
+    
+    this.model.nodes.forEach(function (node) {
+      if (node.type === 'core') {
+        visible[node.id] = true;
+      } else if (node.type === 'hub') {
+        // Los hubs de técnica siempre visibles si estamos en nivel 1 o 2
+        visible[node.id] = this.expandedLevel >= 1 || !!this.expandedHubIds[node.id];
+      } else if (node.type === 'art') {
+        // Las miniaturas de obras visibles si estamos en nivel 2
+        visible[node.id] = this.expandedLevel >= 2 || node.visible;
+      } else if (node.type === 'material') {
+        // Bloquear nodos de material en el grafo principal para que no ensucien
+        visible[node.id] = false;
+      }
+    }, this);
+    
+    // El núcleo SIEMPRE es visible
+    visible[this.model.coreId] = true;
+
+    // Aplicar estado a capas
+    this.visibleIds = visible;
+    this.nodeLayer.setState({ 
+      filteredIds: visible, 
+      selectedId: this.selectedId, 
+      focusId: this.focusId, 
+      relatedIds: this.relatedIds 
+    });
+    this.edgeLayer.applyVisibility(visible);
+    
+    this.dirty = true;
+    
+    // Recalcular conteo visible
+    const count = this.model.nodes.filter(function(n) { 
+      return visible[n.id] && n.type === 'art'; 
+    }).length;
+    this.visibleCount = count;
+    
+    return count;
+  };
+
+  /** Restablece la expansión al nivel por defecto (solo núcleo) */
+  Graph.prototype.resetExpansion = function () {
+    this.expandedLevel = 0;
+    this.expandedHubIds = Object.create(null);
+    
+    // Restablecer visibilidad en nodos
+    this.model.nodes.forEach(function (node) {
+      delete node.visible;
+    });
+    
+    this.applyVisibility();
+    this.fit();
+  };
+
+  /** Expande el grafo al nivel especificado (0, 1 o 2) */
+  Graph.prototype.expandToLevel = function (level) {
+    if (level < 0) level = 0;
+    if (level > 2) level = 2;
+    this.expandedLevel = level;
+    
+    // Marcar TODOS los hubs y obras como visibles
+    this.model.nodes.forEach(function(node) {
+      if (node.type === 'hub') {
+        this.expandedHubIds[node.id] = true;
+        node.visible = true;
+      }
+      if (node.type === 'art') {
+        node.visible = true;
+      }
+    }, this);
+    
+    this.applyVisibility();
+    this.fit();
+    return this;
   };
 
   Graph.prototype.toggleEmptyState = function (show) {

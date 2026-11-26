@@ -105,6 +105,7 @@
       loader: {
         aria: 'Iniciando sistema',
         sub: 'montando grafo de bocetos…',
+        progress: 'Progreso de carga',
         skip: 'SALTAR INTRO'
       },
       views: {

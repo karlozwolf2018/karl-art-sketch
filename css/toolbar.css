@@ -1,82 +1,40 @@
 /* ============================================================
-   toolbar.css — Herramientas flotantes del lienzo (Elegante)
+   toolbar.css — Herramientas flotantes (Horizontal/Desplegable)
    ============================================================ */
 .toolbar {
-  position: absolute;
-  top: 18px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 25;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  border: 1px solid var(--line-2);
-  border-radius: 99px;
-  background: var(--surface);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  max-width: calc(100% - 32px);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.toolbar::-webkit-scrollbar { display: none; }
-.stage-area:not([data-view="graph"]) .toolbar,
-.toolbar.is-hidden {
-  display: none !important;
 }
 
-.toolbar__group {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 8px;
+.toolbar.is-expanded {
 }
-.toolbar__group + .toolbar__group { border-left: 1px solid var(--line); }
 
 .toolbtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 34px;
-  padding: 0 14px;
-  font-family: var(--font-body);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  color: var(--text-dim);
-  border: 1px solid transparent;
-  border-radius: 99px;
-  background: transparent;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: all var(--t-fast) var(--ease);
-}
-.toolbtn:hover {
-  color: var(--text);
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--line);
-}
-.toolbtn.is-on {
-  color: #0b0d14;
-  background: var(--accent);
-  box-shadow: 0 2px 10px rgba(212, 163, 115, 0.35);
-  font-weight: 700;
-}
-.toolbtn:disabled { opacity: 0.35; cursor: not-allowed; }
-.toolbtn span { font-size: 12.5px; }
-
-.toolbar__zoom {
-  min-width: 52px;
-  text-align: center;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent);
 }
 
-@media (max-width: 1180px) {
-  .toolbtn span { display: none; }
-  .toolbtn { padding: 0 10px; font-size: 13px; }
+.toolbtn--main {
+}
+
+.toolbtn--main span {
+}
+
+.toolbar.is-expanded .toolbtn--main span {
+}
+
+/* Efecto desenrollado: Sub-botones ocultos */
+.toolbtn--sub {
+}
+
+/* Efecto desenrollado: Sub-botones al expandir */
+.toolbar.is-expanded .toolbtn--sub {
+}
+
+/* Retrasos escalonados para el efecto de "desenrollado" desde el centro */
+/* El main es el child 4 */
+
+/* Hover y temas */
+
+/* Tooltip animado */
+.toolbtn::after {
+}
+
+.toolbtn:hover::after {
 }
