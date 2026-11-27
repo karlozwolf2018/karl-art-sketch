@@ -522,12 +522,15 @@
     const query = String(f.query || '').trim().toLowerCase();
 
     this.query = query;
-    let visible = 0;
+    let visibleCount = 0;
 
     Object.keys(this.cards).forEach(function (id) {
       const item = self.cards[id];
       const art = item.art;
-      const inSelectedGallery = !!self.selectedGallery && belongsToGallery(art, self.selectedGallery);
+      
+      // FILTRO DE GALERÍA: Obligatorio si hay una seleccionada
+      const inSelectedGallery = !self.selectedGallery || belongsToGallery(art, self.selectedGallery);
+      
       const okCategory = !(f.categories || []).length || f.categories.indexOf(art.category) > -1;
       const okTags = !(f.tags || []).length || f.tags.every(function (tag) {
         return art.tags.indexOf(tag.toLowerCase()) > -1;
@@ -535,9 +538,18 @@
       const okFav = !f.onlyFavorites || CYBER.Favorites.has(art.id);
       const okAvailable = !f.onlyAvailable || art.available;
       const okQuery = !query || art.searchText.indexOf(query) > -1;
+      
+      // Combinación de todos los filtros
       const ok = inSelectedGallery && okCategory && okTags && okFav && okAvailable && okQuery;
 
       item.el.classList.toggle('is-hidden', !ok);
+      if (ok) visibleCount += 1;
+    });
+
+    this.countLabel.textContent = visibleCount;
+    this.updateEmptyState(visibleCount === 0);
+    return visibleCount;
+  };
       if (item.title) item.title.innerHTML = dom.highlight(art.title, query);
       if (ok) visible += 1;
     });
