@@ -340,6 +340,10 @@
     const isEdit = !!this.id;
     this.currentImageUrl = raw.imageUrl || '';
 
+    this.open = true;
+    this.root.classList.add('is-open');
+    this.root.setAttribute('aria-hidden', 'false');
+
     dom.clear(this.root);
 
     function field(label, control, hint) {
