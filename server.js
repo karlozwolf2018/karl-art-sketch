@@ -88,17 +88,30 @@ app.post('/api/artworks', async (req, res) => {
   const art = req.body;
   try {
     const query = `
-      INSERT INTO artworks (id, image_url, title, category, technique, materials, year, status, tags, l10n)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      INSERT INTO artworks (
+        id, image_url, materials_image_url, gallery, holographic, 
+        title, category, technique, materials, paper, 
+        grammage, brand, year, size, status, 
+        seed, render, featured, palette, tags, l10n
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
       ON CONFLICT (id) DO UPDATE SET
-      image_url = $2, title = $3, category = $4, technique = $5, materials = $6, year = $7, status = $8, tags = $9, l10n = $10
+      image_url = $2, materials_image_url = $3, gallery = $4, holographic = $5,
+      title = $6, category = $7, technique = $8, materials = $9, paper = $10,
+      grammage = $11, brand = $12, year = $13, size = $14, status = $15,
+      seed = $16, render = $17, featured = $18, palette = $19, tags = $20, l10n = $21
     `;
-    const params = [art.id, art.imageUrl, art.title, art.category, art.technique, art.materials, art.year, art.status, JSON.stringify(art.tags), JSON.stringify(art.l10n)];
+    const params = [
+      art.id, art.imageUrl, art.materialsImageUrl || art.materialsImage || '', art.gallery, !!art.holographic,
+      art.title, art.category, art.technique, art.materials, art.paper,
+      art.grammage, art.brand, art.year, art.size, art.status,
+      art.seed, art.render, !!art.featured, JSON.stringify(art.palette || []), JSON.stringify(art.tags || []), JSON.stringify(art.l10n || {})
+    ];
     await pool.query(query, params);
     res.json({ success: true });
   } catch (err) {
     console.error('Error al guardar obra:', err);
-    res.status(500).json({ error: 'No se pudo guardar la obra en la base de datos' });
+    res.status(500).json({ error: 'No se pudo guardar la obra en la base de datos', detail: err.message });
   }
 });
 
