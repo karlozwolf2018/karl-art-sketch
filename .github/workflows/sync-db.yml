@@ -1,0 +1,19 @@
+name: Sincronizar Base de Datos
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'data/**'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Instalar dependencias
+        run: npm install
+      - name: Ejecutar migración de datos
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: node migrate.js

@@ -83,13 +83,23 @@ function toArtwork(row) {
   };
 }
 
-// Rutas API
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    service: 'karl-sketch-api',
-    endpoints: ['/api/artworks', '/api/artworks/:id', '/api/categories', '/api/tags']
-  });
+// Añadir esta ruta debajo de los otros app.get
+app.post('/api/artworks', async (req, res) => {
+  const art = req.body;
+  try {
+    const query = `
+      INSERT INTO artworks (id, image_url, title, category, technique, materials, year, status, tags, l10n)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      ON CONFLICT (id) DO UPDATE SET
+      image_url = $2, title = $3, category = $4, technique = $5, materials = $6, year = $7, status = $8, tags = $9, l10n = $10
+    `;
+    const params = [art.id, art.imageUrl, art.title, art.category, art.technique, art.materials, art.year, art.status, JSON.stringify(art.tags), JSON.stringify(art.l10n)];
+    await pool.query(query, params);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error al guardar obra:', err);
+    res.status(500).json({ error: 'No se pudo guardar la obra en la base de datos' });
+  }
 });
 
 app.get('/api/artworks', async (req, res) => {

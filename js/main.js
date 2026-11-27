@@ -885,6 +885,19 @@
           return app.data.artworks.find(function (art) { return art.id === id; });
         },
         onSave: function (raw, wasEdit) {
+          // Persistencia en base de datos (Cloud)
+          fetch('/api/artworks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(raw)
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) console.log('Sincronizado con Neon DB');
+          })
+          .catch(err => console.error('Error sincronizando:', err));
+
+          // Guardado local y actualización de UI
           if (wasEdit) CYBER.UserData.update(raw.id, raw);
           else CYBER.UserData.add(raw);
           applyUserData();
